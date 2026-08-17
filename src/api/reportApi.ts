@@ -8,7 +8,7 @@ export async function generateReport(
   values: ReportFormValues,
   signal: AbortSignal
 ): Promise<Blob> {
-  const baseUrl = import.meta.env.VITE_REPORT_API_URL ?? DEFAULT_API_URL;
+  const baseUrl = import.meta.env.VITE_REPORT_API_URL || DEFAULT_API_URL;
 
   const body: Record<string, string> = { address: values.address };
   if (values.logoUrl.trim().length > 0) {
@@ -45,7 +45,12 @@ export async function generateReport(
     if (typeof detail === "string") {
       throw new ReportApiError(detail);
     }
-    throw new ReportApiError("Verifica los datos del formulario.");
+    if (Array.isArray(detail)) {
+      throw new ReportApiError("Verifica los datos del formulario.");
+    }
+    throw new ReportApiError(
+      "Ocurrió un error inesperado en el servidor. Intenta de nuevo."
+    );
   }
 
   return response.blob();

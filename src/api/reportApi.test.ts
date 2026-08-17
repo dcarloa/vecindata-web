@@ -41,7 +41,10 @@ describe("generateReport", () => {
       new AbortController().signal
     );
 
-    const [, init] = fetchMock.mock.calls[0];
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("http://localhost:8000/reports");
+    expect(init.method).toBe("POST");
+    expect(init.headers).toEqual({ "Content-Type": "application/json" });
     const body = JSON.parse(init.body as string);
     expect(body).toEqual({
       address: "Calle 100",
@@ -131,6 +134,23 @@ describe("generateReport", () => {
     await expect(
       generateReport(BASE_VALUES, new AbortController().signal)
     ).rejects.toThrow("La solicitud tardó demasiado. Intenta de nuevo.");
+  });
+
+  it("rejects with an unexpected-error message when the response body can't be parsed", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => {
+          throw new Error("not json");
+        },
+      })
+    );
+
+    await expect(
+      generateReport(BASE_VALUES, new AbortController().signal)
+    ).rejects.toThrow("Ocurrió un error inesperado en el servidor. Intenta de nuevo.");
   });
 
   it("every rejection is a ReportApiError instance", async () => {

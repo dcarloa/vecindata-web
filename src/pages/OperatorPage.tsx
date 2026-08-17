@@ -23,7 +23,9 @@ function triggerDownload(blob: Blob, fileName: string): void {
   const link = document.createElement("a");
   link.href = url;
   link.download = fileName;
+  document.body.appendChild(link);
   link.click();
+  document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
 
@@ -32,9 +34,11 @@ export function OperatorPage() {
   const [fileName, setFileName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const abortControllerRef = useRef<AbortController | undefined>(undefined);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     return () => {
+      isMountedRef.current = false;
       abortControllerRef.current?.abort();
     };
   }, []);
@@ -55,6 +59,9 @@ export function OperatorPage() {
       setStatus("ready");
     } catch (err) {
       window.clearTimeout(timeoutId);
+      if (!isMountedRef.current) {
+        return;
+      }
       const message =
         err instanceof ReportApiError
           ? err.message
