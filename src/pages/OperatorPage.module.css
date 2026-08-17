@@ -1,0 +1,25 @@
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 64px 24px 96px;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+.intro {
+  color: var(--color-text-muted);
+  max-width: 560px;
+  margin: 0 0 40px;
+  line-height: 1.6;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 40px;
+  align-items: start;
+}
