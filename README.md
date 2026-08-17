@@ -8,6 +8,11 @@ Landing pública + panel del operador de VecinData (Colombia).
 npm install
 ```
 
+## Configuración
+
+Por defecto apunta a `http://localhost:8000` (report-api corriendo localmente). Para
+usar otra URL, copia `.env.example` a `.env` y ajusta `VITE_REPORT_API_URL`.
+
 ## Desarrollo
 
 ```bash
