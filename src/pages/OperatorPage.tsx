@@ -4,39 +4,84 @@ import {
   ReportPreviewCard,
   type ReportStatus,
 } from "../components/ReportPreviewCard/ReportPreviewCard";
+import { generateReport, ReportApiError } from "../api/reportApi";
 import styles from "./OperatorPage.module.css";
 
-const SIMULATED_GENERATION_DELAY_MS = 1200;
+const REQUEST_TIMEOUT_MS = 60_000;
+
+function slugifyAddress(address: string): string {
+  return address
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function triggerDownload(blob: Blob, fileName: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
 export function OperatorPage() {
   const [status, setStatus] = useState<ReportStatus>("idle");
-  const timeoutRef = useRef<number | undefined>(undefined);
+  const [fileName, setFileName] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const abortControllerRef = useRef<AbortController | undefined>(undefined);
 
   useEffect(() => {
     return () => {
-      if (timeoutRef.current !== undefined) {
-        window.clearTimeout(timeoutRef.current);
-      }
+      abortControllerRef.current?.abort();
     };
   }, []);
 
-  function handleSubmit(_values: ReportFormValues) {
+  async function handleSubmit(values: ReportFormValues) {
     setStatus("loading");
-    timeoutRef.current = window.setTimeout(() => {
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    try {
+      const pdfBlob = await generateReport(values, controller.signal);
+      window.clearTimeout(timeoutId);
+      const generatedFileName = `reporte-${slugifyAddress(values.address)}.pdf`;
+      triggerDownload(pdfBlob, generatedFileName);
+      setFileName(generatedFileName);
       setStatus("ready");
-    }, SIMULATED_GENERATION_DELAY_MS);
+    } catch (err) {
+      window.clearTimeout(timeoutId);
+      const message =
+        err instanceof ReportApiError
+          ? err.message
+          : "No se pudo conectar con el servidor. Intenta de nuevo.";
+      setErrorMessage(message);
+      setStatus("error");
+    }
+  }
+
+  function handleRetry() {
+    setStatus("idle");
   }
 
   return (
     <main className={styles.page}>
       <h1 className={styles.title}>Generar reporte de ubicación</h1>
       <p className={styles.intro}>
-        Ingresa la dirección del inmueble. Por ahora te mostramos un reporte
-        de ejemplo — pronto quedará conectado a datos reales.
+        Ingresa la dirección del inmueble para generar su reporte de ubicación.
       </p>
       <div className={styles.layout}>
         <ReportForm onSubmit={handleSubmit} isSubmitting={status === "loading"} />
-        <ReportPreviewCard status={status} />
+        <ReportPreviewCard
+          status={status}
+          fileName={fileName}
+          errorMessage={errorMessage}
+          onRetry={handleRetry}
+        />
       </div>
     </main>
   );
