@@ -4,6 +4,10 @@ import { MemoryRouter } from "react-router-dom";
 import App from "./App";
 
 describe("App", () => {
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   it("renders the landing page at the root route", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
@@ -15,7 +19,8 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
-  it("navigates to the operator page when the nav CTA is clicked", async () => {
+  it("navigates to the operator page when the nav CTA is clicked, past the access gate", async () => {
+    localStorage.setItem("vecindata_operator_key", "test-key");
     const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={["/"]}>
@@ -25,6 +30,19 @@ describe("App", () => {
     await user.click(screen.getByRole("link", { name: /generar reporte/i }));
     expect(
       screen.getByRole("heading", { name: /generar reporte de ubicación/i })
+    ).toBeInTheDocument();
+  });
+
+  it("shows the access gate instead of the operator page when no key is stored", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <App />
+      </MemoryRouter>
+    );
+    await user.click(screen.getByRole("link", { name: /generar reporte/i }));
+    expect(
+      screen.getByRole("heading", { name: /acceso al panel operador/i })
     ).toBeInTheDocument();
   });
 });

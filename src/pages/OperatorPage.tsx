@@ -29,7 +29,12 @@ function triggerDownload(blob: Blob, fileName: string): void {
   URL.revokeObjectURL(url);
 }
 
-export function OperatorPage() {
+interface OperatorPageProps {
+  accessKey: string;
+  onAccessDenied: () => void;
+}
+
+export function OperatorPage({ accessKey, onAccessDenied }: OperatorPageProps) {
   const [status, setStatus] = useState<ReportStatus>("idle");
   const [fileName, setFileName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -51,7 +56,7 @@ export function OperatorPage() {
     const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
     try {
-      const pdfBlob = await generateReport(values, controller.signal);
+      const pdfBlob = await generateReport(values, accessKey, controller.signal);
       window.clearTimeout(timeoutId);
       const generatedFileName = `reporte-${slugifyAddress(values.address)}.pdf`;
       triggerDownload(pdfBlob, generatedFileName);
@@ -60,6 +65,10 @@ export function OperatorPage() {
     } catch (err) {
       window.clearTimeout(timeoutId);
       if (!isMountedRef.current) {
+        return;
+      }
+      if (err instanceof ReportApiError && err.status === 401) {
+        onAccessDenied();
         return;
       }
       const message =
