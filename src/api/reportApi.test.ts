@@ -7,6 +7,8 @@ const BASE_VALUES: ReportFormValues = {
   brandColor: "",
 };
 
+const ACCESS_KEY = "test-access-key";
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });
@@ -21,9 +23,24 @@ describe("generateReport", () => {
       vi.fn().mockResolvedValue({ ok: true, blob: async () => pdfBlob })
     );
 
-    const result = await generateReport(BASE_VALUES, new AbortController().signal);
+    const result = await generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal);
 
     expect(result).toBe(pdfBlob);
+  });
+
+  it("sends the access key in the X-Operator-Key header", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, blob: async () => new Blob() });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal);
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init.headers).toEqual({
+      "Content-Type": "application/json",
+      "X-Operator-Key": ACCESS_KEY,
+    });
   });
 
   it("omits blank optional fields and maps camelCase to snake_case in the request body", async () => {
@@ -38,13 +55,13 @@ describe("generateReport", () => {
         logoUrl: "  https://x.com/logo.png  ",
         brandColor: "#4f46e5",
       },
+      ACCESS_KEY,
       new AbortController().signal
     );
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("http://localhost:8000/reports");
     expect(init.method).toBe("POST");
-    expect(init.headers).toEqual({ "Content-Type": "application/json" });
     const body = JSON.parse(init.body as string);
     expect(body).toEqual({
       address: "Calle 100",
@@ -59,7 +76,7 @@ describe("generateReport", () => {
       .mockResolvedValue({ ok: true, blob: async () => new Blob() });
     vi.stubGlobal("fetch", fetchMock);
 
-    await generateReport(BASE_VALUES, new AbortController().signal);
+    await generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal);
 
     const [, init] = fetchMock.mock.calls[0];
     const body = JSON.parse(init.body as string);
@@ -79,7 +96,7 @@ describe("generateReport", () => {
     );
 
     await expect(
-      generateReport(BASE_VALUES, new AbortController().signal)
+      generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal)
     ).rejects.toThrow("No se encontraron coordenadas para la dirección: xyz");
   });
 
@@ -96,7 +113,7 @@ describe("generateReport", () => {
     );
 
     await expect(
-      generateReport(BASE_VALUES, new AbortController().signal)
+      generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal)
     ).rejects.toThrow("Verifica los datos del formulario.");
   });
 
@@ -113,15 +130,30 @@ describe("generateReport", () => {
     );
 
     await expect(
-      generateReport(BASE_VALUES, new AbortController().signal)
+      generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal)
     ).rejects.toThrow("Error al consultar un proveedor de datos externo.");
+  });
+
+  it("rejects with status 401 and the backend's message on an invalid access key", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: async () => ({ detail: "Clave de acceso inválida." }),
+      })
+    );
+
+    await expect(
+      generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal)
+    ).rejects.toMatchObject({ status: 401, message: "Clave de acceso inválida." });
   });
 
   it("rejects with a connection message when fetch itself fails", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
 
     await expect(
-      generateReport(BASE_VALUES, new AbortController().signal)
+      generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal)
     ).rejects.toThrow("No se pudo conectar con el servidor. Intenta de nuevo.");
   });
 
@@ -132,7 +164,7 @@ describe("generateReport", () => {
     );
 
     await expect(
-      generateReport(BASE_VALUES, new AbortController().signal)
+      generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal)
     ).rejects.toThrow("La solicitud tardó demasiado. Intenta de nuevo.");
   });
 
@@ -149,7 +181,7 @@ describe("generateReport", () => {
     );
 
     await expect(
-      generateReport(BASE_VALUES, new AbortController().signal)
+      generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal)
     ).rejects.toThrow("Ocurrió un error inesperado en el servidor. Intenta de nuevo.");
   });
 
@@ -157,7 +189,7 @@ describe("generateReport", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
 
     await expect(
-      generateReport(BASE_VALUES, new AbortController().signal)
+      generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal)
     ).rejects.toBeInstanceOf(ReportApiError);
   });
 });

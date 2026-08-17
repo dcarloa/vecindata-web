@@ -2,10 +2,18 @@ import type { ReportFormValues } from "../components/ReportForm/ReportForm";
 
 const DEFAULT_API_URL = "http://localhost:8000";
 
-export class ReportApiError extends Error {}
+export class ReportApiError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.status = status;
+  }
+}
 
 export async function generateReport(
   values: ReportFormValues,
+  accessKey: string,
   signal: AbortSignal
 ): Promise<Blob> {
   const baseUrl = import.meta.env.VITE_REPORT_API_URL || DEFAULT_API_URL;
@@ -22,7 +30,10 @@ export async function generateReport(
   try {
     response = await fetch(`${baseUrl}/reports`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Operator-Key": accessKey,
+      },
       body: JSON.stringify(body),
       signal,
     });
@@ -43,13 +54,14 @@ export async function generateReport(
     }
 
     if (typeof detail === "string") {
-      throw new ReportApiError(detail);
+      throw new ReportApiError(detail, response.status);
     }
     if (Array.isArray(detail)) {
-      throw new ReportApiError("Verifica los datos del formulario.");
+      throw new ReportApiError("Verifica los datos del formulario.", response.status);
     }
     throw new ReportApiError(
-      "Ocurrió un error inesperado en el servidor. Intenta de nuevo."
+      "Ocurrió un error inesperado en el servidor. Intenta de nuevo.",
+      response.status
     );
   }
 
