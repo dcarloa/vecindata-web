@@ -1,13 +1,21 @@
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./ReportPreviewCard.module.css";
 
-export type ReportStatus = "idle" | "loading" | "ready";
+export type ReportStatus = "idle" | "loading" | "ready" | "error";
 
 interface ReportPreviewCardProps {
   status: ReportStatus;
+  fileName?: string;
+  errorMessage?: string;
+  onRetry?: () => void;
 }
 
-export function ReportPreviewCard({ status }: ReportPreviewCardProps) {
+export function ReportPreviewCard({
+  status,
+  fileName,
+  errorMessage,
+  onRetry,
+}: ReportPreviewCardProps) {
   return (
     <div className={styles.card}>
       <AnimatePresence mode="wait">
@@ -19,7 +27,7 @@ export function ReportPreviewCard({ status }: ReportPreviewCardProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            Completa el formulario para ver un reporte de ejemplo.
+            Completa el formulario para generar tu reporte.
           </motion.p>
         )}
 
@@ -44,15 +52,27 @@ export function ReportPreviewCard({ status }: ReportPreviewCardProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
           >
-            <span className={styles.badge}>Vista previa de ejemplo</span>
+            <span className={styles.badge}>Reporte generado</span>
             <h3 className={styles.readyTitle}>¡Tu reporte está listo!</h3>
             <p className={styles.readyDescription}>
-              Este es un reporte de ejemplo — pronto se conectará a los datos
-              reales de tu propiedad.
+              Se descargó automáticamente como {fileName}.
             </p>
-            <a href="/example-report.pdf" download className={styles.downloadLink}>
-              Descargar PDF de ejemplo
-            </a>
+          </motion.div>
+        )}
+
+        {status === "error" && (
+          <motion.div
+            key="error"
+            className={styles.errorState}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+          >
+            <h3 className={styles.errorTitle}>No se pudo generar el reporte</h3>
+            <p className={styles.errorDescription}>{errorMessage}</p>
+            <button type="button" onClick={onRetry} className={styles.retryButton}>
+              Reintentar
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

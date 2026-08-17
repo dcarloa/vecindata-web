@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ReportPreviewCard } from "./ReportPreviewCard";
 
 describe("ReportPreviewCard", () => {
@@ -12,12 +13,24 @@ describe("ReportPreviewCard", () => {
     expect(screen.getByText(/generando tu reporte/i)).toBeInTheDocument();
   });
 
-  it("shows the example badge and a download link to the static PDF when ready", () => {
-    render(<ReportPreviewCard status="ready" />);
-    expect(screen.getByText(/vista previa de ejemplo/i)).toBeInTheDocument();
-    const downloadLink = screen.getByRole("link", {
-      name: /descargar pdf de ejemplo/i,
-    });
-    expect(downloadLink).toHaveAttribute("href", "/example-report.pdf");
+  it("shows a ready confirmation naming the downloaded file", () => {
+    render(<ReportPreviewCard status="ready" fileName="reporte-calle-100.pdf" />);
+    expect(screen.getByText(/tu reporte está listo/i)).toBeInTheDocument();
+    expect(screen.getByText(/reporte-calle-100\.pdf/)).toBeInTheDocument();
+  });
+
+  it("shows the error message and calls onRetry when the retry button is clicked", async () => {
+    const onRetry = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <ReportPreviewCard
+        status="error"
+        errorMessage="No se encontraron coordenadas para la dirección: xyz"
+        onRetry={onRetry}
+      />
+    );
+    expect(screen.getByText(/no se encontraron coordenadas/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /reintentar/i }));
+    expect(onRetry).toHaveBeenCalledOnce();
   });
 });
