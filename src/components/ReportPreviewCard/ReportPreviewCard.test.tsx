@@ -13,6 +13,11 @@ describe("ReportPreviewCard", () => {
     expect(screen.getByText(/generando tu reporte/i)).toBeInTheDocument();
   });
 
+  it("sets time expectations during loading so a real 20-30s wait doesn't look frozen", () => {
+    render(<ReportPreviewCard status="loading" />);
+    expect(screen.getByText(/20.*30 segundos/i)).toBeInTheDocument();
+  });
+
   it("shows a ready confirmation naming the downloaded file", () => {
     render(<ReportPreviewCard status="ready" fileName="reporte-calle-100.pdf" />);
     expect(screen.getByText(/tu reporte está listo/i)).toBeInTheDocument();

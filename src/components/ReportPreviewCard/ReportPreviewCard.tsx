@@ -41,6 +41,9 @@ export function ReportPreviewCard({
           >
             <span className={styles.spinner} aria-hidden="true" />
             <p>Generando tu reporte...</p>
+            <p className={styles.loadingHint}>
+              Esto puede tardar 20-30 segundos — no cierres esta pestaña.
+            </p>
           </motion.div>
         )}
 
