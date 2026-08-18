@@ -53,4 +53,21 @@ describe("AccessGate", () => {
     ).toBeInTheDocument();
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
+
+  it("shows an error message and clears the input after onAccessDenied, without re-submitting the stale value", async () => {
+    localStorage.setItem(STORAGE_KEY, "vieja");
+    const user = userEvent.setup();
+    render(
+      <AccessGate>
+        {(accessKey, onAccessDenied) => (
+          <button onClick={onAccessDenied}>Simular 401 ({accessKey})</button>
+        )}
+      </AccessGate>
+    );
+
+    await user.click(screen.getByRole("button", { name: /simular 401/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/clave incorrecta/i);
+    expect(screen.getByPlaceholderText(/clave de acceso/i)).toHaveValue("");
+  });
 });
