@@ -46,7 +46,7 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
         <input
           type="text"
           className={styles.input}
-          placeholder="Calle 100 # 15-20, Bogotá"
+          placeholder="Calle 100 No. 15-20, Bogotá"
           value={address}
           onChange={(event) => setAddress(event.target.value)}
         />
