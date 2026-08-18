@@ -50,11 +50,11 @@ npm run build
    - Build output directory: `dist`
 4. Antes de desplegar, agrega la variable de entorno (sección "Environment
    variables" del mismo formulario):
-   - `VITE_REPORT_API_URL` = la URL de Cloud Run del paso 3 de
-     `vecindata-report-api` arriba (ej. `https://vecindata-report-api-xxxxx-uc.a.run.app`)
+   - `VITE_REPORT_API_URL` = la URL de Cloud Run del paso 3 en el README de
+     `vecindata-report-api` (ej. `https://vecindata-report-api-xxxxx-uc.a.run.app`)
 5. Guarda y despliega. Cloudflare te da una URL permanente tipo
    `https://vecindata-web-xxx.pages.dev`.
-6. Copia esa URL y vuelve al paso 4 de `vecindata-report-api` arriba para
+6. Copia esa URL y vuelve al paso 4 en el README de `vecindata-report-api` para
    agregarla a `allow_origins` y redesplegar el backend con el CORS correcto.
 
 Desde este punto, **cada `git push` a `master` despliega automático** — no hay
