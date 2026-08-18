@@ -1,18 +1,21 @@
 :root {
-  --color-bg: #fafaf9;
-  --color-bg-dark: #0b0f19;
-  --color-surface: #ffffff;
-  --color-text: #111827;
-  --color-text-invert: #f9fafb;
-  --color-text-muted: #6b7280;
-  --color-primary: #4f46e5;
-  --color-primary-dark: #3730a3;
-  --color-accent: #f97316;
-  --color-border: #e5e7eb;
+  --color-bg: #f6f1e6;
+  --color-bg-dark: #1c1712;
+  --color-surface: #fffdf8;
+  --color-text: #241f1a;
+  --color-text-invert: #f6f1e6;
+  --color-text-muted: #6f6255;
+  --color-primary: #b5502e;
+  --color-primary-dark: #8f3e22;
+  --color-accent: #c98a3e;
+  --color-ring: #a68a5b;
+  --color-border: #e3d8c2;
   --color-danger: #b91c1c;
   --radius-md: 12px;
   --radius-lg: 20px;
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Fraunces", "Iowan Old Style", "Georgia", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 
 * {
@@ -39,4 +42,13 @@ a {
 
 button {
   font-family: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
