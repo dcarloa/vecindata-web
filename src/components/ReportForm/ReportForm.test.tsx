@@ -53,6 +53,21 @@ describe("ReportForm", () => {
     });
   });
 
+  it("shows a precision hint only when the address looks cadastral (contains #)", async () => {
+    const user = userEvent.setup();
+    render(<ReportForm onSubmit={vi.fn()} isSubmitting={false} />);
+    const addressInput = screen.getByPlaceholderText(/calle 100/i);
+
+    expect(screen.queryByText(/formato catastral/i)).not.toBeInTheDocument();
+
+    await user.type(addressInput, "Calle 100 # 15-20, Bogotá");
+    expect(screen.getByText(/formato catastral/i)).toBeInTheDocument();
+
+    await user.clear(addressInput);
+    await user.type(addressInput, "Avenida Siempre Viva 123");
+    expect(screen.queryByText(/formato catastral/i)).not.toBeInTheDocument();
+  });
+
   it("disables the submit button and shows a loading label while submitting", () => {
     render(<ReportForm onSubmit={vi.fn()} isSubmitting={true} />);
     const button = screen.getByRole("button", { name: /generando/i });

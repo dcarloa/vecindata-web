@@ -19,6 +19,7 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
   const [logoUrl, setLogoUrl] = useState("");
   const [brandColor, setBrandColor] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const looksCadastral = address.includes("#");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -49,6 +50,13 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
           value={address}
           onChange={(event) => setAddress(event.target.value)}
         />
+        {looksCadastral && (
+          <p className={styles.hint}>
+            Las direcciones con "#" (formato catastral colombiano) a veces
+            ubican el reporte de forma aproximada, no exacta — verifica el
+            mapa antes de compartirlo.
+          </p>
+        )}
       </label>
 
       <label className={styles.field}>
