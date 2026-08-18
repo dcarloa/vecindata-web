@@ -8,21 +8,23 @@ export function Hero() {
   return (
     <section className={styles.hero}>
       <svg className={styles.rings} viewBox="0 0 100 100" aria-hidden="true">
-        {RINGS.map((r, index) => (
-          <motion.circle
-            key={r}
-            cx="82"
-            cy="18"
-            r={r * 60}
-            fill="none"
-            stroke="var(--color-ring)"
-            strokeWidth="0.3"
-            initial={{ pathLength: 0, opacity: 0 }}
-            whileInView={{ pathLength: 1, opacity: 0.5 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.4, delay: index * 0.12, ease: "easeOut" }}
-          />
-        ))}
+        <g className={styles.ringsGroup}>
+          {RINGS.map((r, index) => (
+            <motion.circle
+              key={r}
+              cx="82"
+              cy="18"
+              r={r * 60}
+              fill="none"
+              stroke="var(--color-ring)"
+              strokeWidth="0.3"
+              initial={{ pathLength: 0, opacity: 0 }}
+              whileInView={{ pathLength: 1, opacity: 0.5 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.4, delay: index * 0.12, ease: "easeOut" }}
+            />
+          ))}
+        </g>
       </svg>
       <div className={styles.content}>
         <motion.p

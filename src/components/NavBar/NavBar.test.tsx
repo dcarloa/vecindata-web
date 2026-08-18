@@ -22,4 +22,30 @@ describe("NavBar", () => {
     const ctaLink = screen.getByRole("link", { name: /generar reporte/i });
     expect(ctaLink).toHaveAttribute("href", "/generar");
   });
+
+  it("renders section anchor links on the landing page", () => {
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <NavBar />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole("link", { name: /qué incluye/i })).toHaveAttribute(
+      "href",
+      "#incluye"
+    );
+    expect(
+      screen.getByRole("link", { name: /cómo funciona/i })
+    ).toHaveAttribute("href", "#como-funciona");
+  });
+
+  it("hides the section anchor links outside the landing page", () => {
+    render(
+      <MemoryRouter initialEntries={["/generar"]}>
+        <NavBar />
+      </MemoryRouter>
+    );
+    expect(
+      screen.queryByRole("link", { name: /qué incluye/i })
+    ).not.toBeInTheDocument();
+  });
 });

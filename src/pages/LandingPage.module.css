@@ -1,6 +1,32 @@
 /* src/pages/LandingPage.module.css */
 
+.page {
+  position: relative;
+  overflow-x: clip;
+}
+
+.ambientBlob {
+  position: absolute;
+  top: 520px;
+  left: 50%;
+  width: min(900px, 140vw);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-primary) 20%, transparent) 0%,
+    color-mix(in srgb, var(--color-accent) 12%, transparent) 45%,
+    transparent 72%
+  );
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .section {
+  position: relative;
+  z-index: 1;
   max-width: 1000px;
   margin: 0 auto;
   padding: 88px 24px;
@@ -44,6 +70,8 @@
 }
 
 .steps {
+  position: relative;
+  z-index: 1;
   max-width: 1000px;
   margin: 0 auto;
   padding: 24px 24px 88px;
@@ -93,6 +121,8 @@
 }
 
 .manifesto {
+  position: relative;
+  z-index: 1;
   background: var(--color-bg-dark);
   padding: 88px 24px;
 }

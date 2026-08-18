@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import { Hero } from "../components/Hero/Hero";
 import { SectionHeading } from "../components/SectionHeading/SectionHeading";
 import { BeforeAfterSlider } from "../components/BeforeAfterSlider/BeforeAfterSlider";
@@ -89,11 +90,31 @@ function EnrichedListingMock() {
 }
 
 export function LandingPage() {
+  const pageRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: pageRef });
+  const background = useTransform(
+    scrollYProgress,
+    [0, 0.35, 0.7, 1],
+    ["#f6f1e6", "#f2ead6", "#f6f1e6", "#eee3c8"]
+  );
+  const blobY = useTransform(scrollYProgress, [0, 1], ["-15%", "70%"]);
+  const blobRotate = useTransform(scrollYProgress, [0, 1], [0, 40]);
+
   return (
-    <main>
+    <motion.main ref={pageRef} style={{ background }} className={styles.page}>
       <Hero />
 
-      <section className={styles.section} aria-labelledby="includes-heading">
+      <motion.div
+        className={styles.ambientBlob}
+        style={{ y: blobY, rotate: blobRotate }}
+        aria-hidden="true"
+      />
+
+      <section
+        id="incluye"
+        className={styles.section}
+        aria-labelledby="includes-heading"
+      >
         <SectionHeading
           number="Qué incluye"
           title="Todo lo que un comprador pregunta, ya resuelto"
@@ -113,7 +134,11 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className={styles.section} aria-labelledby="compare-heading">
+      <section
+        id="comparar"
+        className={styles.section}
+        aria-labelledby="compare-heading"
+      >
         <SectionHeading
           number="Antes y después"
           title="El mismo anuncio, con contexto real"
@@ -127,7 +152,11 @@ export function LandingPage() {
         />
       </section>
 
-      <section className={styles.steps} aria-labelledby="how-it-works">
+      <section
+        id="como-funciona"
+        className={styles.steps}
+        aria-labelledby="how-it-works"
+      >
         <SectionHeading number="Cómo funciona" title="Tres pasos, un PDF" />
         <ol className={styles.stepsList}>
           {STEPS.map((step, index) => (
@@ -160,6 +189,6 @@ export function LandingPage() {
           fuentes abiertas.
         </p>
       </footer>
-    </main>
+    </motion.main>
   );
 }

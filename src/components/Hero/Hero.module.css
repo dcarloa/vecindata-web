@@ -1,5 +1,6 @@
 .hero {
   position: relative;
+  z-index: 1;
   overflow: hidden;
   background: var(--color-bg-dark);
   color: var(--color-text-invert);
@@ -13,6 +14,22 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+
+.ringsGroup {
+  transform-box: view-box;
+  transform-origin: 82px 18px;
+  animation: ringsDrift 42s ease-in-out infinite;
+}
+
+@keyframes ringsDrift {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(5deg) scale(1.03);
+  }
 }
 
 .content {
