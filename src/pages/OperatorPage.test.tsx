@@ -2,6 +2,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { OperatorPage } from "./OperatorPage";
 import { generateReport, ReportApiError } from "../api/reportApi";
+import { createColombiaPlaceAutocompleteElement, loadPlacesLibrary } from "../api/googlePlaces";
+import { dispatchPlaceSelection } from "../test/googlePlacesTestUtils";
 
 vi.mock("../api/reportApi", () => ({
   generateReport: vi.fn(),
@@ -14,12 +16,39 @@ vi.mock("../api/reportApi", () => ({
   },
 }));
 
+vi.mock("../api/googlePlaces", () => ({
+  loadPlacesLibrary: vi.fn(),
+  createColombiaPlaceAutocompleteElement: vi.fn(),
+}));
+
 const mockedGenerateReport = vi.mocked(generateReport);
 const ACCESS_KEY = "test-access-key";
+const SELECTED_PLACE = {
+  address: "Calle 100 No. 15-20, Bogotá, Colombia",
+  lat: 4.6842,
+  lon: -74.0559,
+};
+
+async function renderAndSelectAddress(props: Parameters<typeof OperatorPage>[0]) {
+  const fakeElement = document.createElement("div");
+  vi.mocked(loadPlacesLibrary).mockResolvedValue(undefined);
+  vi.mocked(createColombiaPlaceAutocompleteElement).mockReturnValue(
+    fakeElement as never
+  );
+
+  render(<OperatorPage {...props} />);
+  await waitFor(() => expect(fakeElement.isConnected).toBe(true));
+  dispatchPlaceSelection(fakeElement, SELECTED_PLACE);
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: /generar reporte/i })).toBeEnabled()
+  );
+}
 
 describe("OperatorPage", () => {
   beforeEach(() => {
     mockedGenerateReport.mockReset();
+    vi.mocked(loadPlacesLibrary).mockReset();
+    vi.mocked(createColombiaPlaceAutocompleteElement).mockReset();
     URL.createObjectURL = vi.fn(() => "blob:mock-url");
     URL.revokeObjectURL = vi.fn();
   });
@@ -30,36 +59,34 @@ describe("OperatorPage", () => {
     });
     mockedGenerateReport.mockResolvedValue(pdfBlob);
     const user = userEvent.setup();
-    render(<OperatorPage accessKey={ACCESS_KEY} onAccessDenied={vi.fn()} />);
+    await renderAndSelectAddress({ accessKey: ACCESS_KEY, onAccessDenied: vi.fn() });
 
-    await user.type(
-      screen.getByPlaceholderText(/calle 100/i),
-      "Calle 100 # 15-20, Bogotá"
-    );
     await user.click(screen.getByRole("button", { name: /generar reporte/i }));
 
     expect(
       await screen.findByText(/se descargó automáticamente/i)
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/reporte-calle-100-15-20-bogota\.pdf/)
+      screen.getByText(/reporte-calle-100-no-15-20-bogota-colombia\.pdf/)
     ).toBeInTheDocument();
     expect(mockedGenerateReport).toHaveBeenCalledWith(
-      expect.objectContaining({ address: "Calle 100 # 15-20, Bogotá" }),
+      expect.objectContaining({
+        address: SELECTED_PLACE.address,
+        lat: SELECTED_PLACE.lat,
+        lon: SELECTED_PLACE.lon,
+      }),
       ACCESS_KEY,
       expect.anything()
     );
   });
 
-  it("shows the error state with the backend's message and lets the operator retry without losing their input", async () => {
+  it("shows the error state with the backend's message and lets the operator retry", async () => {
     mockedGenerateReport.mockRejectedValue(
       new ReportApiError("No se encontraron coordenadas para la dirección: xyz")
     );
     const user = userEvent.setup();
-    render(<OperatorPage accessKey={ACCESS_KEY} onAccessDenied={vi.fn()} />);
+    await renderAndSelectAddress({ accessKey: ACCESS_KEY, onAccessDenied: vi.fn() });
 
-    const addressInput = screen.getByPlaceholderText(/calle 100/i);
-    await user.type(addressInput, "xyz");
     await user.click(screen.getByRole("button", { name: /generar reporte/i }));
 
     expect(
@@ -69,7 +96,6 @@ describe("OperatorPage", () => {
     await user.click(screen.getByRole("button", { name: /reintentar/i }));
 
     expect(screen.getByRole("button", { name: /generar reporte/i })).toBeEnabled();
-    expect(addressInput).toHaveValue("xyz");
   });
 
   it("calls onAccessDenied instead of showing the error state when the access key is rejected", async () => {
@@ -78,9 +104,8 @@ describe("OperatorPage", () => {
     );
     const onAccessDenied = vi.fn();
     const user = userEvent.setup();
-    render(<OperatorPage accessKey={ACCESS_KEY} onAccessDenied={onAccessDenied} />);
+    await renderAndSelectAddress({ accessKey: ACCESS_KEY, onAccessDenied });
 
-    await user.type(screen.getByPlaceholderText(/calle 100/i), "Calle 100");
     await user.click(screen.getByRole("button", { name: /generar reporte/i }));
 
     await waitFor(() => {

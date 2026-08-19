@@ -3,6 +3,8 @@ import type { ReportFormValues } from "../components/ReportForm/ReportForm";
 
 const BASE_VALUES: ReportFormValues = {
   address: "Calle 100 # 15-20, Bogotá",
+  lat: 4.6097,
+  lon: -74.0817,
   logoUrl: "",
   brandColor: "",
 };
@@ -52,6 +54,8 @@ describe("generateReport", () => {
     await generateReport(
       {
         address: "Calle 100",
+        lat: 4.6097,
+        lon: -74.0817,
         logoUrl: "  https://x.com/logo.png  ",
         brandColor: "#4f46e5",
       },
@@ -65,6 +69,8 @@ describe("generateReport", () => {
     const body = JSON.parse(init.body as string);
     expect(body).toEqual({
       address: "Calle 100",
+      lat: 4.6097,
+      lon: -74.0817,
       logo_url: "https://x.com/logo.png",
       brand_color: "#4f46e5",
     });
@@ -80,7 +86,11 @@ describe("generateReport", () => {
 
     const [, init] = fetchMock.mock.calls[0];
     const body = JSON.parse(init.body as string);
-    expect(body).toEqual({ address: "Calle 100 # 15-20, Bogotá" });
+    expect(body).toEqual({
+      address: "Calle 100 # 15-20, Bogotá",
+      lat: 4.6097,
+      lon: -74.0817,
+    });
   });
 
   it("rejects with the backend's message on a 422 with a string detail", async () => {

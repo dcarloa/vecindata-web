@@ -1,10 +1,17 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import styles from "./ReportForm.module.css";
+import {
+  createColombiaPlaceAutocompleteElement,
+  loadPlacesLibrary,
+  type PlaceSelectEvent,
+} from "../../api/googlePlaces";
 
 const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
 export interface ReportFormValues {
   address: string;
+  lat: number;
+  lon: number;
   logoUrl: string;
   brandColor: string;
 }
@@ -14,18 +21,60 @@ interface ReportFormProps {
   isSubmitting: boolean;
 }
 
+type AutocompleteStatus = "loading" | "ready" | "error";
+
+interface SelectedPlace {
+  address: string;
+  lat: number;
+  lon: number;
+}
+
 export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
-  const [address, setAddress] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [autocompleteStatus, setAutocompleteStatus] = useState<AutocompleteStatus>("loading");
+  const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
   const [logoUrl, setLogoUrl] = useState("");
   const [brandColor, setBrandColor] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const looksCadastral = address.includes("#");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadPlacesLibrary()
+      .then(() => {
+        if (cancelled || !containerRef.current) return;
+        const element = createColombiaPlaceAutocompleteElement();
+        element.addEventListener("gmp-select", ((event: PlaceSelectEvent) => {
+          const place = event.placePrediction.toPlace();
+          place
+            .fetchFields({ fields: ["formattedAddress", "location"] })
+            .then(() => {
+              if (cancelled || !place.location) return;
+              setSelectedPlace({
+                address: place.formattedAddress ?? "",
+                lat: place.location.lat(),
+                lon: place.location.lng(),
+              });
+              setError(null);
+            });
+        }) as EventListener);
+        containerRef.current.appendChild(element);
+        setAutocompleteStatus("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setAutocompleteStatus("error");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (address.trim().length === 0) {
-      setError("La dirección es obligatoria.");
+    if (!selectedPlace) {
+      setError("Selecciona una dirección de la lista de sugerencias.");
       return;
     }
     if (brandColor.length > 0 && !HEX_COLOR_PATTERN.test(brandColor)) {
@@ -36,25 +85,24 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
     }
 
     setError(null);
-    onSubmit({ address: address.trim(), logoUrl: logoUrl.trim(), brandColor });
+    onSubmit({
+      address: selectedPlace.address,
+      lat: selectedPlace.lat,
+      lon: selectedPlace.lon,
+      logoUrl: logoUrl.trim(),
+      brandColor,
+    });
   }
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
       <label className={styles.field}>
         <span className={styles.label}>Dirección del inmueble</span>
-        <input
-          type="text"
-          className={styles.input}
-          placeholder="Calle 100 No. 15-20, Bogotá"
-          value={address}
-          onChange={(event) => setAddress(event.target.value)}
-        />
-        {looksCadastral && (
+        <div ref={containerRef} className={styles.autocomplete} />
+        {autocompleteStatus === "error" && (
           <p className={styles.hint}>
-            Las direcciones con "#" (formato catastral colombiano) a veces
-            ubican el reporte de forma aproximada, no exacta — verifica el
-            mapa antes de compartirlo.
+            No se pudo cargar el buscador de direcciones. Recarga la página e
+            intenta de nuevo.
           </p>
         )}
       </label>
@@ -89,7 +137,11 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
         </p>
       )}
 
-      <button type="submit" className={styles.submit} disabled={isSubmitting}>
+      <button
+        type="submit"
+        className={styles.submit}
+        disabled={isSubmitting || !selectedPlace}
+      >
         {isSubmitting ? "Generando..." : "Generar reporte"}
       </button>
     </form>

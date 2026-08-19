@@ -18,7 +18,11 @@ export async function generateReport(
 ): Promise<Blob> {
   const baseUrl = import.meta.env.VITE_REPORT_API_URL || DEFAULT_API_URL;
 
-  const body: Record<string, string> = { address: values.address };
+  const body: Record<string, string | number> = {
+    address: values.address,
+    lat: values.lat,
+    lon: values.lon,
+  };
   if (values.logoUrl.trim().length > 0) {
     body.logo_url = values.logoUrl.trim();
   }

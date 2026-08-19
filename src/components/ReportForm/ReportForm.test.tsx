@@ -1,76 +1,124 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ReportForm } from "./ReportForm";
+import { createColombiaPlaceAutocompleteElement, loadPlacesLibrary } from "../../api/googlePlaces";
+import { dispatchPlaceSelection, type FakePlace } from "../../test/googlePlacesTestUtils";
+
+vi.mock("../../api/googlePlaces", () => ({
+  loadPlacesLibrary: vi.fn(),
+  createColombiaPlaceAutocompleteElement: vi.fn(),
+}));
+
+async function renderFormAndSelectPlace(
+  onSubmit = vi.fn(),
+  place: FakePlace = { address: "Calle 71 Bis #91-72, Bogotá, Colombia", lat: 4.6973, lon: -74.1116 }
+) {
+  const fakeElement = document.createElement("div");
+  vi.mocked(loadPlacesLibrary).mockResolvedValue(undefined);
+  vi.mocked(createColombiaPlaceAutocompleteElement).mockReturnValue(
+    fakeElement as never
+  );
+
+  render(<ReportForm onSubmit={onSubmit} isSubmitting={false} />);
+  await waitFor(() => expect(fakeElement.isConnected).toBe(true));
+  dispatchPlaceSelection(fakeElement, place);
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: /generar reporte/i })).toBeEnabled()
+  );
+
+  return { onSubmit, fakeElement, place };
+}
 
 describe("ReportForm", () => {
-  it("shows a validation error and does not submit when address is empty", async () => {
-    const onSubmit = vi.fn();
-    const user = userEvent.setup();
-    render(<ReportForm onSubmit={onSubmit} isSubmitting={false} />);
-
-    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
-
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      /dirección es obligatoria/i
-    );
-    expect(onSubmit).not.toHaveBeenCalled();
+  beforeEach(() => {
+    vi.mocked(loadPlacesLibrary).mockReset();
+    vi.mocked(createColombiaPlaceAutocompleteElement).mockReset();
   });
 
-  it("shows a validation error for a malformed brand color and does not submit", async () => {
-    const onSubmit = vi.fn();
-    const user = userEvent.setup();
-    render(<ReportForm onSubmit={onSubmit} isSubmitting={false} />);
-
-    await user.type(
-      screen.getByPlaceholderText(/calle 100/i),
-      "Calle 100 # 15-20, Bogotá"
+  it("keeps the submit button disabled until a place is selected from the autocomplete", async () => {
+    const fakeElement = document.createElement("div");
+    vi.mocked(loadPlacesLibrary).mockResolvedValue(undefined);
+    vi.mocked(createColombiaPlaceAutocompleteElement).mockReturnValue(
+      fakeElement as never
     );
-    await user.type(screen.getByPlaceholderText("#4f46e5"), "not-a-color");
-    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
 
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      /hexadecimal válido/i
+    render(<ReportForm onSubmit={vi.fn()} isSubmitting={false} />);
+    await waitFor(() => expect(fakeElement.isConnected).toBe(true));
+
+    expect(screen.getByRole("button", { name: /generar reporte/i })).toBeDisabled();
+
+    dispatchPlaceSelection(fakeElement, {
+      address: "Calle 71 Bis #91-72, Bogotá, Colombia",
+      lat: 4.6973,
+      lon: -74.1116,
+    });
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /generar reporte/i })).toBeEnabled()
     );
-    expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it("calls onSubmit with trimmed values when the form is valid", async () => {
-    const onSubmit = vi.fn();
+  it("calls onSubmit with the address and coordinates resolved by Google Places", async () => {
+    const { onSubmit, place } = await renderFormAndSelectPlace();
     const user = userEvent.setup();
-    render(<ReportForm onSubmit={onSubmit} isSubmitting={false} />);
 
-    await user.type(
-      screen.getByPlaceholderText(/calle 100/i),
-      "  Calle 100 # 15-20, Bogotá  "
-    );
-    await user.type(screen.getByPlaceholderText("#4f46e5"), "#4f46e5");
     await user.click(screen.getByRole("button", { name: /generar reporte/i }));
 
     expect(onSubmit).toHaveBeenCalledWith({
-      address: "Calle 100 # 15-20, Bogotá",
+      address: place.address,
+      lat: place.lat,
+      lon: place.lon,
       logoUrl: "",
-      brandColor: "#4f46e5",
+      brandColor: "",
     });
   });
 
-  it("shows a precision hint only when the address looks cadastral (contains #)", async () => {
+  it("shows a validation error for a malformed brand color and does not submit", async () => {
+    const { onSubmit } = await renderFormAndSelectPlace();
     const user = userEvent.setup();
+
+    await user.type(screen.getByPlaceholderText("#4f46e5"), "not-a-color");
+    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/hexadecimal válido/i);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("shows an error and does not submit if the form is submitted without a selected place", async () => {
+    const onSubmit = vi.fn();
+    const fakeElement = document.createElement("div");
+    vi.mocked(loadPlacesLibrary).mockResolvedValue(undefined);
+    vi.mocked(createColombiaPlaceAutocompleteElement).mockReturnValue(
+      fakeElement as never
+    );
+
+    const { container } = render(<ReportForm onSubmit={onSubmit} isSubmitting={false} />);
+    await waitFor(() => expect(fakeElement.isConnected).toBe(true));
+
+    // The submit button is disabled at this point, but the guard clause in
+    // handleSubmit is what actually protects against a native form submit
+    // (e.g. pressing Enter in another field) bypassing the disabled button.
+    const form = container.querySelector("form") as HTMLFormElement;
+    fireEvent.submit(form);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/selecciona una dirección/i);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("shows a hint and keeps submit disabled when the Google Places script fails to load", async () => {
+    vi.mocked(loadPlacesLibrary).mockRejectedValue(new Error("network error"));
+
     render(<ReportForm onSubmit={vi.fn()} isSubmitting={false} />);
-    const addressInput = screen.getByPlaceholderText(/calle 100/i);
 
-    expect(screen.queryByText(/formato catastral/i)).not.toBeInTheDocument();
-
-    await user.type(addressInput, "Calle 100 # 15-20, Bogotá");
-    expect(screen.getByText(/formato catastral/i)).toBeInTheDocument();
-
-    await user.clear(addressInput);
-    await user.type(addressInput, "Avenida Siempre Viva 123");
-    expect(screen.queryByText(/formato catastral/i)).not.toBeInTheDocument();
+    expect(
+      await screen.findByText(/no se pudo cargar el buscador de direcciones/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /generar reporte/i })).toBeDisabled();
   });
 
   it("disables the submit button and shows a loading label while submitting", () => {
+    vi.mocked(loadPlacesLibrary).mockReturnValue(new Promise(() => {}));
     render(<ReportForm onSubmit={vi.fn()} isSubmitting={true} />);
-    const button = screen.getByRole("button", { name: /generando/i });
-    expect(button).toBeDisabled();
+    expect(screen.getByRole("button", { name: /generando/i })).toBeDisabled();
   });
 });
