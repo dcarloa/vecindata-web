@@ -1,0 +1,30 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.needsReview {
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+}
+
+.warning {
+  color: var(--color-danger);
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+}
+
+.map {
+  width: 220px;
+  height: 150px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
