@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { ReportForm, type ReportFormValues } from "../components/ReportForm/ReportForm";
 import {
   ReportPreviewCard,
   type ReportStatus,
 } from "../components/ReportPreviewCard/ReportPreviewCard";
+import { BatchGenerator } from "../components/BatchGenerator/BatchGenerator";
 import { generateReport, ReportApiError } from "../api/reportApi";
 import { slugifyAddress, triggerDownload } from "../utils/download";
 import { REQUEST_TIMEOUT_MS } from "../utils/constants";
@@ -15,7 +15,15 @@ interface OperatorPageProps {
   onAccessDenied: () => void;
 }
 
+type Mode = "single" | "batch";
+
+const TABS: { id: Mode; label: string }[] = [
+  { id: "single", label: "Una dirección" },
+  { id: "batch", label: "Varias (CSV)" },
+];
+
 export function OperatorPage({ accessKey, onAccessDenied }: OperatorPageProps) {
+  const [mode, setMode] = useState<Mode>("single");
   const [status, setStatus] = useState<ReportStatus>("idle");
   const [fileName, setFileName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -71,18 +79,37 @@ export function OperatorPage({ accessKey, onAccessDenied }: OperatorPageProps) {
       <p className={styles.intro}>
         Ingresa la dirección del inmueble para generar su reporte de ubicación.
       </p>
-      <Link to="/generar-lote" className={styles.bulkLink}>
-        ¿Muchas direcciones a la vez? Sube un CSV
-      </Link>
-      <div className={styles.layout}>
-        <ReportForm onSubmit={handleSubmit} isSubmitting={status === "loading"} />
-        <ReportPreviewCard
-          status={status}
-          fileName={fileName}
-          errorMessage={errorMessage}
-          onRetry={handleRetry}
-        />
+
+      <div className={styles.tabs} role="tablist">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={mode === tab.id}
+            className={mode === tab.id ? `${styles.tab} ${styles.tabActive}` : styles.tab}
+            onClick={() => setMode(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
+
+      {mode === "single" && (
+        <div className={styles.layout}>
+          <ReportForm onSubmit={handleSubmit} isSubmitting={status === "loading"} />
+          <ReportPreviewCard
+            status={status}
+            fileName={fileName}
+            errorMessage={errorMessage}
+            onRetry={handleRetry}
+          />
+        </div>
+      )}
+
+      {mode === "batch" && (
+        <BatchGenerator accessKey={accessKey} onAccessDenied={onAccessDenied} />
+      )}
     </main>
   );
 }

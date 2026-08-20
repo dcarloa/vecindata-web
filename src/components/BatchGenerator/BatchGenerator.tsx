@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import { CsvUpload } from "../components/CsvUpload/CsvUpload";
-import { BatchReviewTable, type ReviewRow } from "../components/BatchReviewTable/BatchReviewTable";
-import { BatchProgress, type RowProgress } from "../components/BatchProgress/BatchProgress";
-import { geocodeAddress } from "../api/geocoding";
-import { runBatch, type BatchRow, type BatchRowResult } from "../batch/runBatch";
-import { buildResultsZip } from "../batch/buildResultsZip";
-import { triggerDownload } from "../utils/download";
-import { mapWithConcurrency } from "../utils/concurrency";
-import { HEX_COLOR_PATTERN } from "../components/ReportForm/ReportForm";
-import styles from "./BulkUploadPage.module.css";
+import { CsvUpload } from "../CsvUpload/CsvUpload";
+import { BatchReviewTable, type ReviewRow } from "../BatchReviewTable/BatchReviewTable";
+import { BatchProgress, type RowProgress } from "../BatchProgress/BatchProgress";
+import { geocodeAddress } from "../../api/geocoding";
+import { runBatch, type BatchRow, type BatchRowResult } from "../../batch/runBatch";
+import { buildResultsZip } from "../../batch/buildResultsZip";
+import { triggerDownload } from "../../utils/download";
+import { mapWithConcurrency } from "../../utils/concurrency";
+import { HEX_COLOR_PATTERN } from "../ReportForm/ReportForm";
+import styles from "./BatchGenerator.module.css";
 
 type Stage = "upload" | "geocoding" | "review" | "generating" | "done" | "error";
 
-interface BulkUploadPageProps {
+interface BatchGeneratorProps {
   accessKey: string;
   onAccessDenied: () => void;
 }
@@ -29,7 +29,7 @@ const GEOCODING_CONCURRENCY = 10;
 const LONG_RUN_NOTICE =
   "Esto puede tardar varios minutos según cuántas direcciones tengas — no cierres esta pestaña.";
 
-export function BulkUploadPage({ accessKey, onAccessDenied }: BulkUploadPageProps) {
+export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProps) {
   const [stage, setStage] = useState<Stage>("upload");
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [logoUrl, setLogoUrl] = useState("");
@@ -177,8 +177,7 @@ export function BulkUploadPage({ accessKey, onAccessDenied }: BulkUploadPageProp
   }
 
   return (
-    <main className={styles.page}>
-      <h1 className={styles.title}>Generar reportes en lote</h1>
+    <div className={styles.page}>
       <p className={styles.intro}>
         Sube un CSV con una dirección por fila para generar varios reportes a la vez.
       </p>
@@ -245,6 +244,6 @@ export function BulkUploadPage({ accessKey, onAccessDenied }: BulkUploadPageProp
           )}
         </>
       )}
-    </main>
+    </div>
   );
 }

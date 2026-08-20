@@ -1,18 +1,18 @@
 import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { BulkUploadPage } from "./BulkUploadPage";
-import { geocodeAddress } from "../api/geocoding";
-import { runBatch } from "../batch/runBatch";
-import { buildResultsZip } from "../batch/buildResultsZip";
-import { triggerDownload } from "../utils/download";
-import { createDraggableMarkerMap } from "../api/googleMap";
+import { BatchGenerator } from "./BatchGenerator";
+import { geocodeAddress } from "../../api/geocoding";
+import { runBatch } from "../../batch/runBatch";
+import { buildResultsZip } from "../../batch/buildResultsZip";
+import { triggerDownload } from "../../utils/download";
+import { createDraggableMarkerMap } from "../../api/googleMap";
 
-vi.mock("../api/geocoding", () => ({ geocodeAddress: vi.fn() }));
-vi.mock("../batch/runBatch", () => ({ runBatch: vi.fn() }));
-vi.mock("../batch/buildResultsZip", () => ({ buildResultsZip: vi.fn() }));
-vi.mock("../api/googleMap", () => ({ createDraggableMarkerMap: vi.fn() }));
-vi.mock("../utils/download", () => ({
+vi.mock("../../api/geocoding", () => ({ geocodeAddress: vi.fn() }));
+vi.mock("../../batch/runBatch", () => ({ runBatch: vi.fn() }));
+vi.mock("../../batch/buildResultsZip", () => ({ buildResultsZip: vi.fn() }));
+vi.mock("../../api/googleMap", () => ({ createDraggableMarkerMap: vi.fn() }));
+vi.mock("../../utils/download", () => ({
   triggerDownload: vi.fn(),
   slugifyAddress: vi.fn((address: string) => address),
 }));
@@ -37,7 +37,7 @@ function csvOf(addresses: string[]) {
   return makeCsvFile(["direccion", ...addresses].join("\n"));
 }
 
-describe("BulkUploadPage", () => {
+describe("BatchGenerator", () => {
   beforeEach(() => {
     mockedGeocodeAddress.mockReset();
     mockedRunBatch.mockReset();
@@ -66,7 +66,7 @@ describe("BulkUploadPage", () => {
     mockedBuildResultsZip.mockResolvedValue(new Blob());
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={vi.fn()} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
 
     const input = screen.getByLabelText(/sube un csv/i);
     await user.upload(input, csvOf(["Calle 100"]));
@@ -99,7 +99,7 @@ describe("BulkUploadPage", () => {
   it("does not mount any map until the operator asks to adjust a row", async () => {
     mockedGeocodeAddress.mockResolvedValue(GEOCODED);
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={vi.fn()} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
 
     await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["A", "B", "C", "D"]));
     await screen.findByRole("button", { name: /generar todos/i });
@@ -119,7 +119,7 @@ describe("BulkUploadPage", () => {
     );
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={vi.fn()} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
 
     await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100"]));
     expect(
@@ -159,7 +159,7 @@ describe("BulkUploadPage", () => {
     });
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={vi.fn()} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
 
     await user.upload(
       screen.getByLabelText(/sube un csv/i),
@@ -185,7 +185,7 @@ describe("BulkUploadPage", () => {
     mockedGeocodeAddress.mockRejectedValue(new Error("network down"));
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={vi.fn()} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
 
     await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100"]));
 
@@ -206,7 +206,7 @@ describe("BulkUploadPage", () => {
     });
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={vi.fn()} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
 
     await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100", "Sin resultado"]));
 
@@ -243,7 +243,7 @@ describe("BulkUploadPage", () => {
     mockedRunBatch.mockResolvedValue({ accessDenied: false, results: [] });
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={vi.fn()} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
 
     await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100", "Sin resultado"]));
 
@@ -279,7 +279,7 @@ describe("BulkUploadPage", () => {
     mockedBuildResultsZip.mockResolvedValue(new Blob());
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={vi.fn()} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
 
     await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100", "Calle 100"]));
 
@@ -322,7 +322,7 @@ describe("BulkUploadPage", () => {
     });
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={vi.fn()} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
 
     await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100", "Calle 100"]));
     await screen.findByRole("button", { name: /generar todos/i });
@@ -351,7 +351,7 @@ describe("BulkUploadPage", () => {
     const onAccessDenied = vi.fn();
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={onAccessDenied} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={onAccessDenied} />);
 
     await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100"]));
     await user.click(await screen.findByRole("button", { name: /generar todos/i }));
@@ -378,7 +378,7 @@ describe("BulkUploadPage", () => {
     const onAccessDenied = vi.fn();
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={onAccessDenied} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={onAccessDenied} />);
 
     await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100"]));
     await user.click(await screen.findByRole("button", { name: /generar todos/i }));
@@ -394,7 +394,7 @@ describe("BulkUploadPage", () => {
     mockedGeocodeAddress.mockResolvedValue(GEOCODED);
 
     const user = userEvent.setup();
-    render(<BulkUploadPage accessKey="test-key" onAccessDenied={vi.fn()} />);
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
 
     await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100"]));
     await screen.findByRole("button", { name: /generar todos/i });

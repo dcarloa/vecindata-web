@@ -46,7 +46,7 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
-  it("navigates to the bulk upload page at /generar-lote, past the access gate", async () => {
+  it("redirects the old /generar-lote link to the operator page", async () => {
     localStorage.setItem("vecindata_operator_key", "test-key");
     render(
       <MemoryRouter initialEntries={["/generar-lote"]}>
@@ -54,7 +54,19 @@ describe("App", () => {
       </MemoryRouter>
     );
     expect(
-      screen.getByRole("heading", { name: /generar reportes en lote/i })
+      screen.getByRole("heading", { name: /generar reporte de ubicación/i })
     ).toBeInTheDocument();
+  });
+
+  it("switches to the CSV batch tab on the operator page", async () => {
+    localStorage.setItem("vecindata_operator_key", "test-key");
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/generar"]}>
+        <App />
+      </MemoryRouter>
+    );
+    await user.click(screen.getByRole("tab", { name: /varias \(csv\)/i }));
+    expect(screen.getByLabelText(/sube un csv/i)).toBeInTheDocument();
   });
 });

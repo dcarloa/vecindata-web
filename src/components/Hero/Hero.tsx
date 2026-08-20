@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { DotGrid } from "../DotGrid/DotGrid";
 import styles from "./Hero.module.css";
 
 const RINGS = [0.28, 0.44, 0.6, 0.76, 0.92];
@@ -7,6 +8,7 @@ const RINGS = [0.28, 0.44, 0.6, 0.76, 0.92];
 export function Hero() {
   return (
     <section className={styles.hero}>
+      <DotGrid />
       <svg className={styles.rings} viewBox="0 0 100 100" aria-hidden="true">
         <g className={styles.ringsGroup}>
           {RINGS.map((r, index) => (
