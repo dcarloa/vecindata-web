@@ -21,6 +21,23 @@ declare global {
             includedRegionCodes?: string[];
           }) => PlaceAutocompleteElement;
         };
+        Map: new (
+          container: HTMLElement,
+          options: { center: { lat: number; lng: number }; zoom: number; mapId?: string }
+        ) => {
+          setCenter(position: { lat: number; lng: number }): void;
+        };
+        marker: {
+          AdvancedMarkerElement: new (options: {
+            map: unknown;
+            position: { lat: number; lng: number };
+            gmpDraggable?: boolean;
+          }) => {
+            position: { lat: number; lng: number } | null;
+            map: unknown;
+            addEventListener(type: string, listener: () => void): void;
+          };
+        };
       };
     };
   }
@@ -45,7 +62,7 @@ export function loadPlacesLibrary(): Promise<void> {
 
   loadPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=es&region=CO`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,marker&language=es&region=CO`;
     script.async = true;
     script.onload = () => resolve();
     script.onerror = () => {
