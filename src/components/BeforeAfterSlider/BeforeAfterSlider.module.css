@@ -42,7 +42,7 @@
 
 .label {
   position: absolute;
-  bottom: 16px;
+  top: 16px;
   z-index: 4;
   font-family: var(--font-mono);
   font-size: 0.68rem;
