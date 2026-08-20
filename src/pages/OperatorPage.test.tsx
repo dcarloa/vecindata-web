@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { OperatorPage } from "./OperatorPage";
 import { generateReport, ReportApiError } from "../api/reportApi";
 import { createColombiaPlaceAutocompleteElement, loadPlacesLibrary } from "../api/googlePlaces";
@@ -36,7 +37,11 @@ async function renderAndSelectAddress(props: Parameters<typeof OperatorPage>[0])
     fakeElement as never
   );
 
-  render(<OperatorPage {...props} />);
+  render(
+    <MemoryRouter>
+      <OperatorPage {...props} />
+    </MemoryRouter>
+  );
   await waitFor(() => expect(fakeElement.isConnected).toBe(true));
   dispatchPlaceSelection(fakeElement, SELECTED_PLACE);
   await waitFor(() =>

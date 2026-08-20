@@ -6,7 +6,7 @@ import {
   type PlaceSelectEvent,
 } from "../../api/googlePlaces";
 
-const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
+export const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
 export interface ReportFormValues {
   address: string;

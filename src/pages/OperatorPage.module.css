@@ -23,3 +23,11 @@
   gap: 40px;
   align-items: start;
 }
+
+.bulkLink {
+  display: inline-block;
+  margin: 0 0 32px;
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: underline;
+}

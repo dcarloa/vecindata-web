@@ -45,4 +45,16 @@ describe("App", () => {
       screen.getByRole("heading", { name: /acceso al panel operador/i })
     ).toBeInTheDocument();
   });
+
+  it("navigates to the bulk upload page at /generar-lote, past the access gate", async () => {
+    localStorage.setItem("vecindata_operator_key", "test-key");
+    render(
+      <MemoryRouter initialEntries={["/generar-lote"]}>
+        <App />
+      </MemoryRouter>
+    );
+    expect(
+      screen.getByRole("heading", { name: /generar reportes en lote/i })
+    ).toBeInTheDocument();
+  });
 });

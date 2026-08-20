@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { ReportForm, type ReportFormValues } from "../components/ReportForm/ReportForm";
 import {
   ReportPreviewCard,
@@ -70,6 +71,9 @@ export function OperatorPage({ accessKey, onAccessDenied }: OperatorPageProps) {
       <p className={styles.intro}>
         Ingresa la dirección del inmueble para generar su reporte de ubicación.
       </p>
+      <Link to="/generar-lote" className={styles.bulkLink}>
+        ¿Muchas direcciones a la vez? Sube un CSV
+      </Link>
       <div className={styles.layout}>
         <ReportForm onSubmit={handleSubmit} isSubmitting={status === "loading"} />
         <ReportPreviewCard

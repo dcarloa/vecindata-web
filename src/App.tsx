@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { NavBar } from "./components/NavBar/NavBar";
 import { LandingPage } from "./pages/LandingPage";
 import { OperatorPage } from "./pages/OperatorPage";
+import { BulkUploadPage } from "./pages/BulkUploadPage";
 import { AccessGate } from "./components/AccessGate/AccessGate";
 
 function App() {
@@ -16,6 +17,16 @@ function App() {
             <AccessGate>
               {(accessKey, onAccessDenied) => (
                 <OperatorPage accessKey={accessKey} onAccessDenied={onAccessDenied} />
+              )}
+            </AccessGate>
+          }
+        />
+        <Route
+          path="/generar-lote"
+          element={
+            <AccessGate>
+              {(accessKey, onAccessDenied) => (
+                <BulkUploadPage accessKey={accessKey} onAccessDenied={onAccessDenied} />
               )}
             </AccessGate>
           }
