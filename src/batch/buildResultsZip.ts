@@ -15,7 +15,7 @@ export async function buildResultsZip(results: BatchRowResult[]): Promise<Blob> 
   );
   const summary =
     failures.length > 0
-      ? failures.map((failure) => `${failure.id}: ${failure.message}`).join("\n")
+      ? failures.map((failure) => `${failure.address}: ${failure.message}`).join("\n")
       : "Todas las direcciones se generaron correctamente.";
   zip.file("resumen.txt", summary);
 

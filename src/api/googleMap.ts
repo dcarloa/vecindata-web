@@ -35,11 +35,14 @@ export async function createDraggableMarkerMap(
     gmpDraggable: true,
   });
 
-  marker.addEventListener("dragend", () => {
+  // Kept in a named reference so destroy() can remove it — without that, every
+  // map a row mounts and unmounts leaks its retained closure.
+  const handleDragEnd = () => {
     const position = marker.position;
     if (!position) return;
     onPositionChange({ lat: position.lat, lon: position.lng });
-  });
+  };
+  marker.addEventListener("dragend", handleDragEnd);
 
   return {
     setPosition(position: MapPosition) {
@@ -47,6 +50,7 @@ export async function createDraggableMarkerMap(
       map.setCenter({ lat: position.lat, lng: position.lon });
     },
     destroy() {
+      marker.removeEventListener("dragend", handleDragEnd);
       marker.map = null;
     },
   };

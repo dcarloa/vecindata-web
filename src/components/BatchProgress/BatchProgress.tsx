@@ -3,7 +3,10 @@ import styles from "./BatchProgress.module.css";
 export type RowProgressStatus = "pending" | "generating" | "success" | "error";
 
 export interface RowProgress {
+  /** Unique row key (CSV position) — duplicate addresses must not collide. */
   id: string;
+  /** Human-readable address shown to the operator. */
+  address: string;
   status: RowProgressStatus;
   message?: string;
 }
@@ -27,7 +30,7 @@ export function BatchProgress({ rows, isComplete, onDownload }: BatchProgressPro
       <ul className={styles.list}>
         {rows.map((row) => (
           <li key={row.id} className={styles[row.status]}>
-            <span className={styles.address}>{row.id}</span>
+            <span className={styles.address}>{row.address}</span>
             <span className={styles.status}>{STATUS_LABEL[row.status]}</span>
             {row.status === "error" && row.message && (
               <span className={styles.message}>{row.message}</span>

@@ -4,13 +4,17 @@ import { slugifyAddress } from "../utils/download";
 import { REQUEST_TIMEOUT_MS } from "../utils/constants";
 
 export interface BatchRow {
+  /**
+   * Unique row key (the row's position in the parsed CSV), NOT the address —
+   * the same address can legitimately appear twice in one CSV.
+   */
   id: string;
   values: ReportFormValues;
 }
 
 export type BatchRowResult =
-  | { id: string; status: "success"; blob: Blob; fileName: string }
-  | { id: string; status: "error"; message: string };
+  | { id: string; address: string; status: "success"; blob: Blob; fileName: string }
+  | { id: string; address: string; status: "error"; message: string };
 
 export interface RunBatchOptions {
   concurrency?: number;
@@ -50,9 +54,13 @@ export async function runBatch(
         clearTimeout(timeoutId);
         const result: BatchRowResult = {
           id: row.id,
+          address: row.values.address,
           status: "success",
           blob,
-          fileName: `reporte-${slugifyAddress(row.values.address)}.pdf`,
+          // The row's position prefixes the slug so two rows with the same
+          // address still get distinct names — same-named zip entries silently
+          // overwrite each other on extraction.
+          fileName: `reporte-${index + 1}-${slugifyAddress(row.values.address)}.pdf`,
         };
         results.push(result);
         options.onRowComplete?.(result);
@@ -64,7 +72,12 @@ export async function runBatch(
         }
         const message =
           err instanceof ReportApiError ? err.message : "No se pudo conectar con el servidor.";
-        const result: BatchRowResult = { id: row.id, status: "error", message };
+        const result: BatchRowResult = {
+          id: row.id,
+          address: row.values.address,
+          status: "error",
+          message,
+        };
         results.push(result);
         options.onRowComplete?.(result);
       }

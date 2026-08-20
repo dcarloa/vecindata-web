@@ -15,11 +15,15 @@ vi.mock("../api/reportApi", () => ({
 
 const mockedGenerateReport = vi.mocked(generateReport);
 
+let nextRowId = 0;
+
 function makeRow(address: string): BatchRow {
-  return {
-    id: address,
+  const row: BatchRow = {
+    id: String(nextRowId),
     values: { address, lat: 4.6, lon: -74.0, logoUrl: "", brandColor: "" },
   };
+  nextRowId += 1;
+  return row;
 }
 
 function deferred<T>() {
@@ -35,6 +39,7 @@ function deferred<T>() {
 describe("runBatch", () => {
   beforeEach(() => {
     mockedGenerateReport.mockReset();
+    nextRowId = 0;
   });
 
   it("never runs more than `concurrency` requests at the same time", async () => {
@@ -73,8 +78,8 @@ describe("runBatch", () => {
     expect(outcome.accessDenied).toBe(false);
     expect(outcome.results).toEqual(
       expect.arrayContaining([
-        { id: "A", status: "error", message: "Dirección inválida." },
-        expect.objectContaining({ id: "B", status: "success" }),
+        { id: "0", address: "A", status: "error", message: "Dirección inválida." },
+        expect.objectContaining({ id: "1", address: "B", status: "success" }),
       ])
     );
   });
@@ -99,9 +104,26 @@ describe("runBatch", () => {
 
     await runBatch(rows, "key", { onRowStart, onRowComplete });
 
-    expect(onRowStart).toHaveBeenCalledWith("A");
+    expect(onRowStart).toHaveBeenCalledWith("0");
     expect(onRowComplete).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "A", status: "success", fileName: "reporte-a.pdf" })
+      expect.objectContaining({
+        id: "0",
+        address: "A",
+        status: "success",
+        fileName: "reporte-1-a.pdf",
+      })
     );
+  });
+
+  it("gives two rows with the same address distinct ids and filenames", async () => {
+    const rows = [makeRow("Calle 100"), makeRow("Calle 100")];
+    mockedGenerateReport.mockResolvedValue(new Blob());
+
+    const outcome = await runBatch(rows, "key", { concurrency: 1 });
+
+    expect(outcome.results).toEqual([
+      expect.objectContaining({ id: "0", fileName: "reporte-1-calle-100.pdf" }),
+      expect.objectContaining({ id: "1", fileName: "reporte-2-calle-100.pdf" }),
+    ]);
   });
 });

@@ -51,6 +51,23 @@ describe("createDraggableMarkerMap", () => {
     expect(onPositionChange).toHaveBeenCalledWith({ lat: 4.7, lon: -74.1 });
   });
 
+  it("stops listening for drags after destroy()", async () => {
+    const onPositionChange = vi.fn();
+    const container = document.createElement("div");
+
+    const map = await createDraggableMarkerMap(
+      container,
+      { lat: 4.68, lon: -74.05 },
+      onPositionChange
+    );
+    map.destroy();
+    lastMarker.triggerDragTo({ lat: 4.7, lng: -74.1 });
+
+    // A retained dragend closure per destroyed row map is a real leak at
+    // 200-row scale.
+    expect(onPositionChange).not.toHaveBeenCalled();
+  });
+
   it("throws a clear error if the Map/marker classes never loaded", async () => {
     window.google = { maps: { places: {} } } as never;
     const container = document.createElement("div");
