@@ -47,6 +47,7 @@ describe("BatchGenerator", () => {
     mockedCreateMap.mockResolvedValue({ setPosition: vi.fn(), destroy: vi.fn() });
     URL.createObjectURL = vi.fn(() => "blob:mock-url");
     URL.revokeObjectURL = vi.fn();
+    localStorage.clear();
   });
 
   it("geocodes uploaded addresses, runs the batch, and offers the zip download", async () => {
@@ -83,6 +84,10 @@ describe("BatchGenerator", () => {
             lon: -74.05,
             logoUrl: "",
             brandColor: "",
+            advisorName: "",
+            advisorWhatsapp: "",
+            advisorEmail: "",
+            tagline: "",
           },
         },
       ],
@@ -94,6 +99,41 @@ describe("BatchGenerator", () => {
     await user.click(downloadButton);
     expect(mockedBuildResultsZip).toHaveBeenCalled();
     expect(mockedTriggerDownload).toHaveBeenCalledWith(expect.any(Blob), "reportes-vecindata.zip");
+  });
+
+  it("includes the advisor contact info stored in localStorage in every batch row", async () => {
+    localStorage.setItem(
+      "vecindata_advisor_info",
+      JSON.stringify({
+        advisorName: "Ana Torres",
+        advisorWhatsapp: "+57 300 123 4567",
+        advisorEmail: "ana@example.com",
+        tagline: "Presentado por Inmobiliaria XYZ",
+      })
+    );
+    mockedGeocodeAddress.mockResolvedValue(GEOCODED);
+    mockedRunBatch.mockResolvedValue({ accessDenied: false, results: [] });
+
+    const user = userEvent.setup();
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
+
+    await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100"]));
+    await user.click(await screen.findByRole("button", { name: /generar todos/i }));
+
+    expect(mockedRunBatch).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({
+          values: expect.objectContaining({
+            advisorName: "Ana Torres",
+            advisorWhatsapp: "+57 300 123 4567",
+            advisorEmail: "ana@example.com",
+            tagline: "Presentado por Inmobiliaria XYZ",
+          }),
+        }),
+      ],
+      "test-key",
+      expect.anything()
+    );
   });
 
   it("does not mount any map until the operator asks to adjust a row", async () => {

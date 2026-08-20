@@ -35,6 +35,10 @@ describe("ReportForm", () => {
     vi.mocked(createColombiaPlaceAutocompleteElement).mockReset();
   });
 
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   it("keeps the submit button disabled until a place is selected from the autocomplete", async () => {
     const fakeElement = document.createElement("div");
     vi.mocked(loadPlacesLibrary).mockResolvedValue(undefined);
@@ -70,7 +74,50 @@ describe("ReportForm", () => {
       lon: place.lon,
       logoUrl: "",
       brandColor: "",
+      advisorName: "",
+      advisorWhatsapp: "",
+      advisorEmail: "",
+      tagline: "",
     });
+  });
+
+  it("includes advisor contact info and tagline in the submitted values", async () => {
+    const { onSubmit } = await renderFormAndSelectPlace();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByPlaceholderText("Ana Torres"), "Ana Torres");
+    await user.type(screen.getByPlaceholderText("+57 300 123 4567"), "+57 300 123 4567");
+    await user.type(screen.getByPlaceholderText("ana@tuinmobiliaria.com"), "ana@example.com");
+    await user.type(
+      screen.getByPlaceholderText("Presentado por Inmobiliaria XYZ"),
+      "Presentado por Inmobiliaria XYZ"
+    );
+    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        advisorName: "Ana Torres",
+        advisorWhatsapp: "+57 300 123 4567",
+        advisorEmail: "ana@example.com",
+        tagline: "Presentado por Inmobiliaria XYZ",
+      })
+    );
+  });
+
+  it("remembers advisor contact info across mounts via localStorage", async () => {
+    localStorage.setItem(
+      "vecindata_advisor_info",
+      JSON.stringify({
+        advisorName: "Ana Torres",
+        advisorWhatsapp: "",
+        advisorEmail: "",
+        tagline: "",
+      })
+    );
+
+    await renderFormAndSelectPlace();
+
+    expect(screen.getByPlaceholderText("Ana Torres")).toHaveValue("Ana Torres");
   });
 
   it("shows a validation error for a malformed brand color and does not submit", async () => {

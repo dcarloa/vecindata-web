@@ -29,6 +29,18 @@ export async function generateReport(
   if (values.brandColor.trim().length > 0) {
     body.brand_color = values.brandColor.trim();
   }
+  if (values.advisorName.trim().length > 0) {
+    body.advisor_name = values.advisorName.trim();
+  }
+  if (values.advisorWhatsapp.trim().length > 0) {
+    body.advisor_whatsapp = values.advisorWhatsapp.trim();
+  }
+  if (values.advisorEmail.trim().length > 0) {
+    body.advisor_email = values.advisorEmail.trim();
+  }
+  if (values.tagline.trim().length > 0) {
+    body.tagline = values.tagline.trim();
+  }
 
   let response: Response;
   try {

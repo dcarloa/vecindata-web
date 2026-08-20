@@ -7,6 +7,10 @@ const BASE_VALUES: ReportFormValues = {
   lon: -74.0817,
   logoUrl: "",
   brandColor: "",
+  advisorName: "",
+  advisorWhatsapp: "",
+  advisorEmail: "",
+  tagline: "",
 };
 
 const ACCESS_KEY = "test-access-key";
@@ -58,6 +62,10 @@ describe("generateReport", () => {
         lon: -74.0817,
         logoUrl: "  https://x.com/logo.png  ",
         brandColor: "#4f46e5",
+        advisorName: "  Ana Torres  ",
+        advisorWhatsapp: "+57 300 123 4567",
+        advisorEmail: "ana@example.com",
+        tagline: "Presentado por Inmobiliaria XYZ",
       },
       ACCESS_KEY,
       new AbortController().signal
@@ -73,6 +81,10 @@ describe("generateReport", () => {
       lon: -74.0817,
       logo_url: "https://x.com/logo.png",
       brand_color: "#4f46e5",
+      advisor_name: "Ana Torres",
+      advisor_whatsapp: "+57 300 123 4567",
+      advisor_email: "ana@example.com",
+      tagline: "Presentado por Inmobiliaria XYZ",
     });
   });
 

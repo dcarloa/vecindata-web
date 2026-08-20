@@ -8,6 +8,7 @@ import { buildResultsZip } from "../../batch/buildResultsZip";
 import { triggerDownload } from "../../utils/download";
 import { mapWithConcurrency } from "../../utils/concurrency";
 import { HEX_COLOR_PATTERN } from "../ReportForm/ReportForm";
+import { useAdvisorInfo } from "../../hooks/useAdvisorInfo";
 import styles from "./BatchGenerator.module.css";
 
 type Stage = "upload" | "geocoding" | "review" | "generating" | "done" | "error";
@@ -34,6 +35,7 @@ export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProp
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [logoUrl, setLogoUrl] = useState("");
   const [brandColor, setBrandColor] = useState("");
+  const [advisorInfo, setAdvisorInfo] = useAdvisorInfo();
   const [brandError, setBrandError] = useState<string | null>(null);
   const [stageError, setStageError] = useState<string | null>(null);
   const [progress, setProgress] = useState<RowProgress[]>([]);
@@ -132,6 +134,10 @@ export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProp
           lon: row.lon,
           logoUrl: logoUrl.trim(),
           brandColor,
+          advisorName: advisorInfo.advisorName,
+          advisorWhatsapp: advisorInfo.advisorWhatsapp,
+          advisorEmail: advisorInfo.advisorEmail,
+          tagline: advisorInfo.tagline,
         },
       }));
 
@@ -206,6 +212,34 @@ export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProp
             <label className={styles.field}>
               <span>Color de marca (opcional)</span>
               <input value={brandColor} onChange={(event) => setBrandColor(event.target.value)} />
+            </label>
+            <label className={styles.field}>
+              <span>Nombre del asesor (opcional)</span>
+              <input
+                value={advisorInfo.advisorName}
+                onChange={(event) => setAdvisorInfo({ advisorName: event.target.value })}
+              />
+            </label>
+            <label className={styles.field}>
+              <span>WhatsApp del asesor (opcional)</span>
+              <input
+                value={advisorInfo.advisorWhatsapp}
+                onChange={(event) => setAdvisorInfo({ advisorWhatsapp: event.target.value })}
+              />
+            </label>
+            <label className={styles.field}>
+              <span>Email del asesor (opcional)</span>
+              <input
+                value={advisorInfo.advisorEmail}
+                onChange={(event) => setAdvisorInfo({ advisorEmail: event.target.value })}
+              />
+            </label>
+            <label className={styles.field}>
+              <span>Frase personalizada (opcional)</span>
+              <input
+                value={advisorInfo.tagline}
+                onChange={(event) => setAdvisorInfo({ tagline: event.target.value })}
+              />
             </label>
             {brandError && (
               <p role="alert" className={styles.error}>

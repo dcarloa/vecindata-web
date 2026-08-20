@@ -5,6 +5,7 @@ import {
   loadPlacesLibrary,
   type PlaceSelectEvent,
 } from "../../api/googlePlaces";
+import { useAdvisorInfo } from "../../hooks/useAdvisorInfo";
 
 export const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
@@ -14,6 +15,10 @@ export interface ReportFormValues {
   lon: number;
   logoUrl: string;
   brandColor: string;
+  advisorName: string;
+  advisorWhatsapp: string;
+  advisorEmail: string;
+  tagline: string;
 }
 
 interface ReportFormProps {
@@ -35,6 +40,7 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
   const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
   const [logoUrl, setLogoUrl] = useState("");
   const [brandColor, setBrandColor] = useState("");
+  const [advisorInfo, setAdvisorInfo] = useAdvisorInfo();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -91,6 +97,10 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
       lon: selectedPlace.lon,
       logoUrl: logoUrl.trim(),
       brandColor,
+      advisorName: advisorInfo.advisorName,
+      advisorWhatsapp: advisorInfo.advisorWhatsapp,
+      advisorEmail: advisorInfo.advisorEmail,
+      tagline: advisorInfo.tagline,
     });
   }
 
@@ -128,6 +138,50 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
           placeholder="#4f46e5"
           value={brandColor}
           onChange={(event) => setBrandColor(event.target.value)}
+        />
+      </label>
+
+      <label className={styles.field}>
+        <span className={styles.label}>Nombre del asesor (opcional)</span>
+        <input
+          type="text"
+          className={styles.input}
+          placeholder="Ana Torres"
+          value={advisorInfo.advisorName}
+          onChange={(event) => setAdvisorInfo({ advisorName: event.target.value })}
+        />
+      </label>
+
+      <label className={styles.field}>
+        <span className={styles.label}>WhatsApp del asesor (opcional)</span>
+        <input
+          type="text"
+          className={styles.input}
+          placeholder="+57 300 123 4567"
+          value={advisorInfo.advisorWhatsapp}
+          onChange={(event) => setAdvisorInfo({ advisorWhatsapp: event.target.value })}
+        />
+      </label>
+
+      <label className={styles.field}>
+        <span className={styles.label}>Email del asesor (opcional)</span>
+        <input
+          type="text"
+          className={styles.input}
+          placeholder="ana@tuinmobiliaria.com"
+          value={advisorInfo.advisorEmail}
+          onChange={(event) => setAdvisorInfo({ advisorEmail: event.target.value })}
+        />
+      </label>
+
+      <label className={styles.field}>
+        <span className={styles.label}>Frase personalizada (opcional)</span>
+        <input
+          type="text"
+          className={styles.input}
+          placeholder="Presentado por Inmobiliaria XYZ"
+          value={advisorInfo.tagline}
+          onChange={(event) => setAdvisorInfo({ tagline: event.target.value })}
         />
       </label>
 

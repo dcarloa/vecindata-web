@@ -20,7 +20,17 @@ let nextRowId = 0;
 function makeRow(address: string): BatchRow {
   const row: BatchRow = {
     id: String(nextRowId),
-    values: { address, lat: 4.6, lon: -74.0, logoUrl: "", brandColor: "" },
+    values: {
+      address,
+      lat: 4.6,
+      lon: -74.0,
+      logoUrl: "",
+      brandColor: "",
+      advisorName: "",
+      advisorWhatsapp: "",
+      advisorEmail: "",
+      tagline: "",
+    },
   };
   nextRowId += 1;
   return row;
