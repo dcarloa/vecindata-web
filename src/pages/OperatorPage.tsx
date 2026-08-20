@@ -5,29 +5,9 @@ import {
   type ReportStatus,
 } from "../components/ReportPreviewCard/ReportPreviewCard";
 import { generateReport, ReportApiError } from "../api/reportApi";
+import { slugifyAddress, triggerDownload } from "../utils/download";
+import { REQUEST_TIMEOUT_MS } from "../utils/constants";
 import styles from "./OperatorPage.module.css";
-
-const REQUEST_TIMEOUT_MS = 60_000;
-
-function slugifyAddress(address: string): string {
-  return address
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function triggerDownload(blob: Blob, fileName: string): void {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
 
 interface OperatorPageProps {
   accessKey: string;
