@@ -35,11 +35,21 @@
   border-radius: var(--radius-md);
   font-family: inherit;
   min-height: 46px;
+  transition: border-color 0.2s ease;
 }
 
 .autocomplete:focus-within {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
+
+/*
+ * gmp-place-autocomplete renders its own input in a shadow root — we can't
+ * style that input directly, but its default focus ring lands on the host
+ * element itself, which regular CSS can still reach.
+ */
+.autocomplete gmp-place-autocomplete {
+  display: block;
+  outline: none;
 }
 
 .error {
