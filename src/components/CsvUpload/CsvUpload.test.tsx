@@ -16,7 +16,9 @@ describe("CsvUpload", () => {
     const input = screen.getByLabelText(/sube un csv/i);
     await user.upload(
       input,
-      makeCsvFile("direccion\nCalle 100 # 15-20, Bogotá\nCarrera 7 # 22-10, Bogotá")
+      makeCsvFile(
+        'direccion\n"Calle 100 # 15-20, Bogotá"\n"Carrera 7 # 22-10, Bogotá"'
+      )
     );
 
     await vi.waitFor(() =>

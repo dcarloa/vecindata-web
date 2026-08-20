@@ -12,6 +12,30 @@ export interface PlaceAutocompleteElement extends HTMLElement {
   placeholder: string;
 }
 
+/**
+ * Geocoder results use the classic `LatLng` object, whose coordinates are
+ * *methods* (`lat()`/`lng()`) — unlike `AdvancedMarkerElement.position`, which
+ * is a plain `{ lat, lng }` literal. Do not confuse the two.
+ */
+export interface GeocoderLatLng {
+  lat(): number;
+  lng(): number;
+}
+
+export interface GeocoderResult {
+  formatted_address: string;
+  geometry: { location: GeocoderLatLng };
+}
+
+export interface GeocoderRequest {
+  address: string;
+  componentRestrictions?: { country: string };
+}
+
+export interface GeocoderResponse {
+  results: GeocoderResult[];
+}
+
 declare global {
   interface Window {
     google?: {
@@ -27,6 +51,9 @@ declare global {
         ) => {
           setCenter(position: { lat: number; lng: number }): void;
         };
+        Geocoder: new () => {
+          geocode(request: GeocoderRequest): Promise<GeocoderResponse>;
+        };
         marker: {
           AdvancedMarkerElement: new (options: {
             map: unknown;
@@ -36,6 +63,7 @@ declare global {
             position: { lat: number; lng: number } | null;
             map: unknown;
             addEventListener(type: string, listener: () => void): void;
+            removeEventListener(type: string, listener: () => void): void;
           };
         };
       };

@@ -1,33 +1,45 @@
+import { loadPlacesLibrary } from "./googlePlaces";
+
 export interface GeocodeResult {
   formattedAddress: string;
   lat: number;
   lon: number;
 }
 
+/**
+ * Geocodes through the Maps JavaScript SDK (`google.maps.Geocoder`), NOT the
+ * Geocoding REST web service. Our API key is restricted by HTTP referrer, and
+ * Google rejects referrer-restricted keys on the REST web services — only
+ * browser-loaded SDK calls are authorized. Keeping the referrer restriction is
+ * non-negotiable (dropping it caused a secret-exposure incident before).
+ */
 export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
-  const apiKey = import.meta.env.VITE_GOOGLE_PLACES_API_KEY ?? "";
-  const params = new URLSearchParams({ address, region: "co", key: apiKey });
-
-  let response: Response;
   try {
-    response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?${params.toString()}`
-    );
+    await loadPlacesLibrary();
+
+    if (!window.google?.maps?.Geocoder) return null;
+
+    const geocoder = new window.google.maps.Geocoder();
+    // `componentRestrictions` is a hard restriction (unlike the old REST
+    // `region` parameter, which only biased results) — Colombian addresses
+    // have resolved to Mexico in production without it.
+    const response = await geocoder.geocode({
+      address,
+      componentRestrictions: { country: "CO" },
+    });
+
+    const first = response?.results?.[0];
+    if (!first) return null;
+
+    return {
+      formattedAddress: first.formatted_address,
+      // Geocoder returns a classic LatLng: coordinates are methods, not fields.
+      lat: first.geometry.location.lat(),
+      lon: first.geometry.location.lng(),
+    };
   } catch {
+    // Covers a failed SDK load, OVER_QUERY_LIMIT / ZERO_RESULTS rejections and
+    // any malformed payload — callers only ever need "no match".
     return null;
   }
-
-  if (!response.ok) return null;
-
-  const payload = await response.json();
-  if (payload.status !== "OK" || !Array.isArray(payload.results) || payload.results.length === 0) {
-    return null;
-  }
-
-  const [first] = payload.results;
-  return {
-    formattedAddress: first.formatted_address,
-    lat: first.geometry.location.lat,
-    lon: first.geometry.location.lng,
-  };
 }
