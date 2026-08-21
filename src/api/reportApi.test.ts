@@ -11,6 +11,8 @@ const BASE_VALUES: ReportFormValues = {
   advisorWhatsapp: "",
   advisorEmail: "",
   tagline: "",
+  radiusM: 1000,
+  visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
 };
 
 const ACCESS_KEY = "test-access-key";
@@ -66,6 +68,8 @@ describe("generateReport", () => {
         advisorWhatsapp: "+57 300 123 4567",
         advisorEmail: "ana@example.com",
         tagline: "Presentado por Inmobiliaria XYZ",
+        radiusM: 1000,
+        visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
       },
       ACCESS_KEY,
       new AbortController().signal
@@ -85,6 +89,8 @@ describe("generateReport", () => {
       advisor_whatsapp: "+57 300 123 4567",
       advisor_email: "ana@example.com",
       tagline: "Presentado por Inmobiliaria XYZ",
+      radius_m: 1000,
+      visible_categories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
     });
   });
 
@@ -102,7 +108,23 @@ describe("generateReport", () => {
       address: "Calle 100 # 15-20, Bogotá",
       lat: 4.6097,
       lon: -74.0817,
+      radius_m: 1000,
+      visible_categories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
     });
+  });
+
+  it("always sends radius_m and visible_categories, even at their defaults", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, blob: async () => new Blob() });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await generateReport(BASE_VALUES, ACCESS_KEY, new AbortController().signal);
+
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse(init.body as string);
+    expect(body.radius_m).toBe(1000);
+    expect(body.visible_categories).toEqual(BASE_VALUES.visibleCategories);
   });
 
   it("rejects with the backend's message on a 422 with a string detail", async () => {

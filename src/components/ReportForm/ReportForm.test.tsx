@@ -78,6 +78,8 @@ describe("ReportForm", () => {
       advisorWhatsapp: "",
       advisorEmail: "",
       tagline: "",
+      radiusM: 1000,
+      visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
     });
   });
 
@@ -100,6 +102,8 @@ describe("ReportForm", () => {
         advisorWhatsapp: "+57 300 123 4567",
         advisorEmail: "ana@example.com",
         tagline: "Presentado por Inmobiliaria XYZ",
+        radiusM: 1000,
+        visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
       })
     );
   });

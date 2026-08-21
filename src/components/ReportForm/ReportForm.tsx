@@ -6,6 +6,7 @@ import {
   type PlaceSelectEvent,
 } from "../../api/googlePlaces";
 import { useAdvisorInfo } from "../../hooks/useAdvisorInfo";
+import { type RadiusM, DEFAULT_RADIUS_M, ALL_CATEGORY_VALUES } from "../../utils/constants";
 
 export const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
@@ -19,6 +20,8 @@ export interface ReportFormValues {
   advisorWhatsapp: string;
   advisorEmail: string;
   tagline: string;
+  radiusM: RadiusM;
+  visibleCategories: string[];
 }
 
 interface ReportFormProps {
@@ -101,6 +104,8 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
       advisorWhatsapp: advisorInfo.advisorWhatsapp,
       advisorEmail: advisorInfo.advisorEmail,
       tagline: advisorInfo.tagline,
+      radiusM: DEFAULT_RADIUS_M,
+      visibleCategories: ALL_CATEGORY_VALUES,
     });
   }
 

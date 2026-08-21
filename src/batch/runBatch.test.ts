@@ -30,6 +30,8 @@ function makeRow(address: string): BatchRow {
       advisorWhatsapp: "",
       advisorEmail: "",
       tagline: "",
+      radiusM: 1000,
+      visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
     },
   };
   nextRowId += 1;

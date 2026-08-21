@@ -88,6 +88,8 @@ describe("BatchGenerator", () => {
             advisorWhatsapp: "",
             advisorEmail: "",
             tagline: "",
+            radiusM: 1000,
+            visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
           },
         },
       ],

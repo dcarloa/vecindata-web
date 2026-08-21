@@ -9,6 +9,7 @@ import { triggerDownload } from "../../utils/download";
 import { mapWithConcurrency } from "../../utils/concurrency";
 import { HEX_COLOR_PATTERN } from "../ReportForm/ReportForm";
 import { useAdvisorInfo } from "../../hooks/useAdvisorInfo";
+import { DEFAULT_RADIUS_M, ALL_CATEGORY_VALUES } from "../../utils/constants";
 import styles from "./BatchGenerator.module.css";
 
 type Stage = "upload" | "geocoding" | "review" | "generating" | "done" | "error";
@@ -138,6 +139,8 @@ export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProp
           advisorWhatsapp: advisorInfo.advisorWhatsapp,
           advisorEmail: advisorInfo.advisorEmail,
           tagline: advisorInfo.tagline,
+          radiusM: DEFAULT_RADIUS_M,
+          visibleCategories: ALL_CATEGORY_VALUES,
         },
       }));
 
