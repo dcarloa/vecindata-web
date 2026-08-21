@@ -72,6 +72,18 @@ describe("PersonalizationFields", () => {
     expect(props.onVisibleCategoriesChange).toHaveBeenCalledWith(["educacion", "salud"]);
   });
 
+  it("does not uncheck the last remaining category", async () => {
+    const props = renderFields({ visibleCategories: ["educacion"] });
+    const user = userEvent.setup();
+    await user.click(screen.getByText(/personalización \(opcional\)/i));
+    const checkbox = screen.getByRole("checkbox", { name: "Educación" });
+    await user.click(checkbox);
+
+    expect(props.onVisibleCategoriesChange).not.toHaveBeenCalled();
+    expect(checkbox).toBeDisabled();
+    expect(checkbox).toBeChecked();
+  });
+
   it("calls onRadiusMChange with a number when the radius select changes", async () => {
     const props = renderFields();
     const user = userEvent.setup();

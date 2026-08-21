@@ -29,6 +29,9 @@ export function PersonalizationFields({
 }: PersonalizationFieldsProps) {
   function toggleCategory(value: string) {
     if (visibleCategories.includes(value)) {
+      if (visibleCategories.length === 1) {
+        return;
+      }
       onVisibleCategoriesChange(visibleCategories.filter((c) => c !== value));
     } else {
       onVisibleCategoriesChange([...visibleCategories, value]);
@@ -123,16 +126,25 @@ export function PersonalizationFields({
         <fieldset className={styles.categoryFieldset}>
           <legend className={styles.label}>Categorías a mostrar</legend>
           <div className={styles.categoryList}>
-            {POI_CATEGORIES.map((category) => (
-              <label key={category.value} className={styles.categoryItem}>
-                <input
-                  type="checkbox"
-                  checked={visibleCategories.includes(category.value)}
-                  onChange={() => toggleCategory(category.value)}
-                />
-                {category.label}
-              </label>
-            ))}
+            {POI_CATEGORIES.map((category) => {
+              const isLastChecked =
+                visibleCategories.length === 1 && visibleCategories.includes(category.value);
+              return (
+                <label
+                  key={category.value}
+                  className={styles.categoryItem}
+                  title={isLastChecked ? "Debe quedar al menos una categoría visible" : undefined}
+                >
+                  <input
+                    type="checkbox"
+                    checked={visibleCategories.includes(category.value)}
+                    disabled={isLastChecked}
+                    onChange={() => toggleCategory(category.value)}
+                  />
+                  {category.label}
+                </label>
+              );
+            })}
           </div>
         </fieldset>
       </div>
