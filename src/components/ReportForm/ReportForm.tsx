@@ -7,6 +7,7 @@ import {
 } from "../../api/googlePlaces";
 import { useAdvisorInfo } from "../../hooks/useAdvisorInfo";
 import { type RadiusM, DEFAULT_RADIUS_M, ALL_CATEGORY_VALUES } from "../../utils/constants";
+import { PersonalizationFields } from "../PersonalizationFields/PersonalizationFields";
 
 export const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
@@ -44,6 +45,8 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
   const [logoUrl, setLogoUrl] = useState("");
   const [brandColor, setBrandColor] = useState("");
   const [advisorInfo, setAdvisorInfo] = useAdvisorInfo();
+  const [radiusM, setRadiusM] = useState<RadiusM>(DEFAULT_RADIUS_M);
+  const [visibleCategories, setVisibleCategories] = useState<string[]>(ALL_CATEGORY_VALUES);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -104,8 +107,8 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
       advisorWhatsapp: advisorInfo.advisorWhatsapp,
       advisorEmail: advisorInfo.advisorEmail,
       tagline: advisorInfo.tagline,
-      radiusM: DEFAULT_RADIUS_M,
-      visibleCategories: ALL_CATEGORY_VALUES,
+      radiusM,
+      visibleCategories,
     });
   }
 
@@ -122,73 +125,18 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
         )}
       </label>
 
-      <label className={styles.field}>
-        <span className={styles.label}>
-          Logo de tu inmobiliaria (URL, opcional)
-        </span>
-        <input
-          type="text"
-          className={styles.input}
-          placeholder="https://tuinmobiliaria.com/logo.png"
-          value={logoUrl}
-          onChange={(event) => setLogoUrl(event.target.value)}
-        />
-      </label>
-
-      <label className={styles.field}>
-        <span className={styles.label}>Color de marca (opcional)</span>
-        <input
-          type="text"
-          className={styles.input}
-          placeholder="#4f46e5"
-          value={brandColor}
-          onChange={(event) => setBrandColor(event.target.value)}
-        />
-      </label>
-
-      <label className={styles.field}>
-        <span className={styles.label}>Nombre del asesor (opcional)</span>
-        <input
-          type="text"
-          className={styles.input}
-          placeholder="Ana Torres"
-          value={advisorInfo.advisorName}
-          onChange={(event) => setAdvisorInfo({ advisorName: event.target.value })}
-        />
-      </label>
-
-      <label className={styles.field}>
-        <span className={styles.label}>WhatsApp del asesor (opcional)</span>
-        <input
-          type="text"
-          className={styles.input}
-          placeholder="+57 300 123 4567"
-          value={advisorInfo.advisorWhatsapp}
-          onChange={(event) => setAdvisorInfo({ advisorWhatsapp: event.target.value })}
-        />
-      </label>
-
-      <label className={styles.field}>
-        <span className={styles.label}>Email del asesor (opcional)</span>
-        <input
-          type="text"
-          className={styles.input}
-          placeholder="ana@tuinmobiliaria.com"
-          value={advisorInfo.advisorEmail}
-          onChange={(event) => setAdvisorInfo({ advisorEmail: event.target.value })}
-        />
-      </label>
-
-      <label className={styles.field}>
-        <span className={styles.label}>Frase personalizada (opcional)</span>
-        <input
-          type="text"
-          className={styles.input}
-          placeholder="Presentado por Inmobiliaria XYZ"
-          value={advisorInfo.tagline}
-          onChange={(event) => setAdvisorInfo({ tagline: event.target.value })}
-        />
-      </label>
+      <PersonalizationFields
+        logoUrl={logoUrl}
+        onLogoUrlChange={setLogoUrl}
+        brandColor={brandColor}
+        onBrandColorChange={setBrandColor}
+        advisorInfo={advisorInfo}
+        onAdvisorInfoChange={setAdvisorInfo}
+        radiusM={radiusM}
+        onRadiusMChange={setRadiusM}
+        visibleCategories={visibleCategories}
+        onVisibleCategoriesChange={setVisibleCategories}
+      />
 
       {error && (
         <p role="alert" className={styles.error}>

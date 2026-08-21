@@ -172,4 +172,21 @@ describe("ReportForm", () => {
     render(<ReportForm onSubmit={vi.fn()} isSubmitting={true} />);
     expect(screen.getByRole("button", { name: /generando/i })).toBeDisabled();
   });
+
+  it("includes a custom radius and unchecked categories in the submitted values", async () => {
+    const { onSubmit } = await renderFormAndSelectPlace();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByText(/personalización \(opcional\)/i));
+    await user.selectOptions(screen.getByLabelText(/radio de búsqueda/i), "500");
+    await user.click(screen.getByRole("checkbox", { name: "Bancos" }));
+    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        radiusM: 500,
+        visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques"],
+      })
+    );
+  });
 });
