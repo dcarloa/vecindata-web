@@ -1,32 +1,87 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import { Hero } from "../components/Hero/Hero";
 import { SectionHeading } from "../components/SectionHeading/SectionHeading";
 import { BeforeAfterSlider } from "../components/BeforeAfterSlider/BeforeAfterSlider";
 import { Logo } from "../components/Logo/Logo";
 import styles from "./LandingPage.module.css";
 
+// Same thin line-icon aesthetic (24x24 viewBox, stroke 1.5, round caps) used
+// for POI categories in the generated PDF and the category chips in
+// PersonalizationFields, so the marketing site and the product read as one
+// system.
+const INCLUDE_ICON_PATHS: Record<string, React.ReactNode> = {
+  pin: (
+    <>
+      <path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z" />
+      <circle cx="12" cy="9" r="2.5" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </>
+  ),
+  layers: (
+    <>
+      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+      <line x1="9" y1="3" x2="9" y2="18" />
+      <line x1="15" y1="6" x2="15" y2="21" />
+    </>
+  ),
+  document: (
+    <>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="8" y1="13" x2="16" y2="13" />
+      <line x1="8" y1="17" x2="12" y2="17" />
+    </>
+  ),
+};
+
+function IncludeIcon({ icon }: { icon: string }) {
+  return (
+    <svg
+      className={styles.includeIcon}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {INCLUDE_ICON_PATHS[icon]}
+    </svg>
+  );
+}
+
 const INCLUDES = [
   {
     number: "01",
+    icon: "pin",
     title: "Puntos de interés cercanos",
     description:
       "Colegios, salud, transporte, comercio, restaurantes, parques y bancos — lo que de verdad rodea el inmueble.",
   },
   {
     number: "02",
+    icon: "clock",
     title: "Isócronas a pie",
     description:
       "Qué tan lejos queda todo caminando, no en línea recta. Así se mueve la gente en realidad.",
   },
   {
     number: "03",
+    icon: "layers",
     title: "Mapa y vista satelital",
     description:
       "Contexto visual inmediato de la zona, sin que el cliente tenga que abrir otra pestaña.",
   },
   {
     number: "04",
+    icon: "document",
     title: "Resumen escrito y tu marca",
     description:
       "Un resumen que no inventa nada, con tu logo y tus colores listo para adjuntar al anuncio.",
@@ -48,6 +103,34 @@ const STEPS = [
     title: "Descarga un PDF listo para compartir",
     description:
       "Con tu logo y colores, para adjuntar directo a tu anuncio.",
+  },
+];
+
+const FAQ = [
+  {
+    question: "¿De dónde salen los datos?",
+    answer:
+      "OpenStreetMap, isócronas caminando reales (no línea recta) y mapas verificables. No inventamos ni adornamos nada del entorno.",
+  },
+  {
+    question: "¿El resumen escrito puede inventar cosas?",
+    answer:
+      "No debería: cada resumen se verifica contra los datos recolectados antes de mostrarse. Si algo no se puede confirmar contra esos datos, mostramos un aviso en vez de un resumen inventado.",
+  },
+  {
+    question: "¿Funciona en toda Colombia o solo en Bogotá?",
+    answer:
+      "El buscador de direcciones está habilitado para toda Colombia. Lo hemos validado más a fondo en Bogotá hasta ahora, y seguimos ajustándolo con el uso real en otras ciudades.",
+  },
+  {
+    question: "¿Puedo generar varios reportes a la vez?",
+    answer:
+      "Sí — puedes subir un CSV con varias direcciones y generar todos los reportes en un solo lote, cada uno con tu logo y marca.",
+  },
+  {
+    question: "¿Cómo consigo acceso?",
+    answer:
+      "Hoy activamos el acceso directamente contigo, sin planes ni tarjetas de crédito de por medio. Escríbenos y te compartimos una clave para empezar.",
   },
 ];
 
@@ -126,6 +209,7 @@ export function LandingPage() {
               className={styles.includeCard}
               {...fadeUp(index * 0.08)}
             >
+              <IncludeIcon icon={item.icon} />
               <span className={styles.includeNumber}>{item.number}</span>
               <h3 className={styles.includeTitle}>{item.title}</h3>
               <p className={styles.includeDescription}>{item.description}</p>
@@ -160,17 +244,36 @@ export function LandingPage() {
         <SectionHeading number="Cómo funciona" title="Tres pasos, un PDF" />
         <ol className={styles.stepsList}>
           {STEPS.map((step, index) => (
-            <motion.li
-              key={step.title}
-              className={styles.step}
-              {...fadeUp(index * 0.1)}
-            >
-              <span className={styles.stepNumber}>{index + 1}</span>
-              <h3 className={styles.stepTitle}>{step.title}</h3>
-              <p className={styles.stepDescription}>{step.description}</p>
-            </motion.li>
+            <Fragment key={step.title}>
+              <motion.li className={styles.step} {...fadeUp(index * 0.1)}>
+                <span className={styles.stepNumber}>{index + 1}</span>
+                <h3 className={styles.stepTitle}>{step.title}</h3>
+                <p className={styles.stepDescription}>{step.description}</p>
+              </motion.li>
+              {index < STEPS.length - 1 && (
+                <li className={styles.stepArrow} aria-hidden="true">
+                  →
+                </li>
+              )}
+            </Fragment>
           ))}
         </ol>
+      </section>
+
+      <section
+        id="preguntas-frecuentes"
+        className={styles.section}
+        aria-labelledby="faq-heading"
+      >
+        <SectionHeading number="Dudas comunes" title="Preguntas frecuentes" />
+        <motion.div className={styles.faqList} {...fadeUp()}>
+          {FAQ.map((item) => (
+            <details key={item.question} className={styles.faqItem}>
+              <summary className={styles.faqQuestion}>{item.question}</summary>
+              <p className={styles.faqAnswer}>{item.answer}</p>
+            </details>
+          ))}
+        </motion.div>
       </section>
 
       <motion.section className={styles.manifesto} {...fadeUp()}>
