@@ -4,6 +4,7 @@ import { Hero } from "../components/Hero/Hero";
 import { SectionHeading } from "../components/SectionHeading/SectionHeading";
 import { BeforeAfterSlider } from "../components/BeforeAfterSlider/BeforeAfterSlider";
 import { Logo } from "../components/Logo/Logo";
+import comparadorPdfPreview from "../assets/comparador-pdf-preview.jpg";
 import styles from "./LandingPage.module.css";
 
 // Same thin line-icon aesthetic (24x24 viewBox, stroke 1.5, round caps) used
@@ -146,7 +147,21 @@ function fadeUp(delay = 0) {
 function BareListingMock() {
   return (
     <div className={styles.mockCard}>
-      <div className={styles.mockImage} />
+      <div className={styles.mockImage}>
+        <svg
+          className={styles.mockImagePlaceholder}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 11l9-7 9 7" />
+          <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" />
+        </svg>
+      </div>
       <p className={styles.mockPrice}>$420.000.000</p>
       <p className={styles.mockAddress}>Calle 71 # 91-72, Bogotá</p>
       <p className={styles.mockMeta}>3 hab · 2 baños · 84 m²</p>
@@ -156,18 +171,12 @@ function BareListingMock() {
 
 function EnrichedListingMock() {
   return (
-    <div className={styles.mockCard}>
-      <div className={styles.mockImage}>
-        <div className={styles.mockMapOverlay} />
-      </div>
-      <p className={styles.mockPrice}>$420.000.000</p>
-      <p className={styles.mockAddress}>Calle 71 # 91-72, Bogotá</p>
-      <p className={styles.mockMeta}>3 hab · 2 baños · 84 m²</p>
-      <div className={styles.mockBadgeRow}>
-        <span className={styles.mockBadge}>3 colegios · 10 min</span>
-        <span className={styles.mockBadge}>Transporte · 5 min</span>
-        <span className={styles.mockBadge}>Parque · 4 min</span>
-      </div>
+    <div className={styles.reportPreview}>
+      <img
+        src={comparadorPdfPreview}
+        alt="Página real de un reporte VecinData: mapa, vista satelital y puntaje de zona"
+        className={styles.reportPreviewImage}
+      />
     </div>
   );
 }
