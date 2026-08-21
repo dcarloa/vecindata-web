@@ -9,7 +9,8 @@ import { triggerDownload } from "../../utils/download";
 import { mapWithConcurrency } from "../../utils/concurrency";
 import { HEX_COLOR_PATTERN } from "../ReportForm/ReportForm";
 import { useAdvisorInfo } from "../../hooks/useAdvisorInfo";
-import { DEFAULT_RADIUS_M, ALL_CATEGORY_VALUES } from "../../utils/constants";
+import { DEFAULT_RADIUS_M, ALL_CATEGORY_VALUES, type RadiusM } from "../../utils/constants";
+import { PersonalizationFields } from "../PersonalizationFields/PersonalizationFields";
 import styles from "./BatchGenerator.module.css";
 
 type Stage = "upload" | "geocoding" | "review" | "generating" | "done" | "error";
@@ -41,6 +42,8 @@ export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProp
   const [stageError, setStageError] = useState<string | null>(null);
   const [progress, setProgress] = useState<RowProgress[]>([]);
   const [results, setResults] = useState<BatchRowResult[]>([]);
+  const [radiusM, setRadiusM] = useState<RadiusM>(DEFAULT_RADIUS_M);
+  const [visibleCategories, setVisibleCategories] = useState<string[]>(ALL_CATEGORY_VALUES);
 
   // A full batch can run for many minutes and there is no server-side job to
   // come back to — closing the tab throws the work away.
@@ -139,8 +142,8 @@ export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProp
           advisorWhatsapp: advisorInfo.advisorWhatsapp,
           advisorEmail: advisorInfo.advisorEmail,
           tagline: advisorInfo.tagline,
-          radiusM: DEFAULT_RADIUS_M,
-          visibleCategories: ALL_CATEGORY_VALUES,
+          radiusM,
+          visibleCategories,
         },
       }));
 
@@ -207,49 +210,23 @@ export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProp
 
       {(stage === "review" || stage === "generating" || stage === "done") && (
         <>
-          <div className={styles.brandFields}>
-            <label className={styles.field}>
-              <span>Logo (URL, opcional)</span>
-              <input value={logoUrl} onChange={(event) => setLogoUrl(event.target.value)} />
-            </label>
-            <label className={styles.field}>
-              <span>Color de marca (opcional)</span>
-              <input value={brandColor} onChange={(event) => setBrandColor(event.target.value)} />
-            </label>
-            <label className={styles.field}>
-              <span>Nombre del asesor (opcional)</span>
-              <input
-                value={advisorInfo.advisorName}
-                onChange={(event) => setAdvisorInfo({ advisorName: event.target.value })}
-              />
-            </label>
-            <label className={styles.field}>
-              <span>WhatsApp del asesor (opcional)</span>
-              <input
-                value={advisorInfo.advisorWhatsapp}
-                onChange={(event) => setAdvisorInfo({ advisorWhatsapp: event.target.value })}
-              />
-            </label>
-            <label className={styles.field}>
-              <span>Email del asesor (opcional)</span>
-              <input
-                value={advisorInfo.advisorEmail}
-                onChange={(event) => setAdvisorInfo({ advisorEmail: event.target.value })}
-              />
-            </label>
-            <label className={styles.field}>
-              <span>Frase personalizada (opcional)</span>
-              <input
-                value={advisorInfo.tagline}
-                onChange={(event) => setAdvisorInfo({ tagline: event.target.value })}
-              />
-            </label>
-            {brandError && (
-              <p role="alert" className={styles.error}>
-                {brandError}
-              </p>
-            )}
-          </div>
+          <PersonalizationFields
+            logoUrl={logoUrl}
+            onLogoUrlChange={setLogoUrl}
+            brandColor={brandColor}
+            onBrandColorChange={setBrandColor}
+            advisorInfo={advisorInfo}
+            onAdvisorInfoChange={setAdvisorInfo}
+            radiusM={radiusM}
+            onRadiusMChange={setRadiusM}
+            visibleCategories={visibleCategories}
+            onVisibleCategoriesChange={setVisibleCategories}
+          />
+          {brandError && (
+            <p role="alert" className={styles.error}>
+              {brandError}
+            </p>
+          )}
           {stage === "review" && (
             <>
               <BatchReviewTable rows={rows} onRowChange={handleRowChange} />

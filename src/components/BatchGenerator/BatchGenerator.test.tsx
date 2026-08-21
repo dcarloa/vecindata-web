@@ -292,7 +292,7 @@ describe("BatchGenerator", () => {
     const generate = await screen.findByRole("button", { name: /generar todos/i });
     expect(generate).toBeDisabled();
 
-    await user.click(screen.getAllByRole("checkbox")[1]);
+    await user.click(screen.getByLabelText(/excluir la fila 2/i));
 
     expect(generate).toBeEnabled();
   });
@@ -327,7 +327,7 @@ describe("BatchGenerator", () => {
 
     // Review: two independent rows, not one collapsed row.
     await screen.findByRole("button", { name: /generar todos/i });
-    expect(screen.getAllByRole("checkbox")).toHaveLength(2);
+    expect(screen.getAllByLabelText(/excluir la fila/i)).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: /ajustar pin/i })).toHaveLength(2);
 
     await user.click(screen.getByRole("button", { name: /generar todos/i }));
@@ -445,5 +445,34 @@ describe("BatchGenerator", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/hexadecimal válido/i);
     expect(mockedRunBatch).not.toHaveBeenCalled();
+  });
+
+  it("includes the selected radius and visible categories in every batch row", async () => {
+    mockedGeocodeAddress.mockResolvedValue(GEOCODED);
+    mockedRunBatch.mockResolvedValue({ accessDenied: false, results: [] });
+
+    const user = userEvent.setup();
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
+
+    await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100"]));
+    await screen.findByRole("button", { name: /generar todos/i });
+
+    await user.click(screen.getByText(/personalización \(opcional\)/i));
+    await user.selectOptions(screen.getByLabelText(/radio de búsqueda/i), "2000");
+    await user.click(screen.getByRole("checkbox", { name: "Bancos" }));
+    await user.click(screen.getByRole("button", { name: /generar todos/i }));
+
+    expect(mockedRunBatch).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({
+          values: expect.objectContaining({
+            radiusM: 2000,
+            visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques"],
+          }),
+        }),
+      ],
+      "test-key",
+      expect.anything()
+    );
   });
 });
