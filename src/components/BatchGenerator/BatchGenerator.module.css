@@ -11,39 +11,6 @@
   margin: 0;
 }
 
-.brandFields {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding: 20px;
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  flex: 1 1 220px;
-}
-
-.field input {
-  font: inherit;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  transition: border-color 0.2s ease;
-}
-
-.field input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
 .error {
   color: var(--color-danger);
   margin: 0;

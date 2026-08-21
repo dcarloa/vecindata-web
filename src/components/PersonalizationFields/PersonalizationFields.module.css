@@ -55,6 +55,11 @@
   background: var(--color-bg);
 }
 
+.input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
 .categoryFieldset {
   border: none;
   padding: 0;

@@ -17,19 +17,6 @@
   color: var(--color-text);
 }
 
-.input {
-  padding: 12px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-family: inherit;
-}
-
-.input:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
-}
-
 .autocomplete {
   border: 1px solid #d1d5db;
   border-radius: var(--radius-md);
