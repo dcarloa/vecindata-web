@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { createDraggableMarkerMap, type DraggableMarkerMap } from "../../api/googleMap";
+import { PinMap } from "../PinMap/PinMap";
 import styles from "./BatchReviewTable.module.css";
 
 export interface ReviewRow {
@@ -44,66 +43,16 @@ function ReviewRowMap({
   position: number;
   onRowChange: BatchReviewTableProps["onRowChange"];
 }) {
-  // A real Google Map per row costs a paid map load and a lot of rendering, so
-  // maps mount only for the rows the operator actually chooses to correct —
-  // load scales with corrections made, not with CSV size.
-  const [open, setOpen] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<DraggableMarkerMap | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const container = containerRef.current;
-    if (!container) return;
-    let cancelled = false;
-
-    createDraggableMarkerMap(container, { lat: row.lat, lon: row.lon }, (next) =>
-      onRowChange(row.id, next)
-    )
-      .then((map) => {
-        if (cancelled) {
-          map.destroy();
-          return;
-        }
-        mapRef.current = map;
-      })
-      .catch(() => {
-        // createDraggableMarkerMap throws by design when the Maps library isn't
-        // ready. Surface it in the row instead of leaving a blank cell and an
-        // unhandled rejection.
-        if (cancelled) return;
-        setFailed(true);
-      });
-
-    return () => {
-      cancelled = true;
-      mapRef.current?.destroy();
-      mapRef.current = null;
-    };
-    // Intentionally re-runs only when the row identity changes, not on every
-    // lat/lon update — the map's own drag handling is what drives those.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, row.id]);
-
-  if (!open) {
-    return (
-      <button
-        type="button"
-        className={styles.adjustButton}
-        onClick={() => setOpen(true)}
-        aria-label={`Ajustar pin de la fila ${position}: ${rowLabel(row)}`}
-      >
-        Ajustar pin
-      </button>
-    );
-  }
-
+  // Row identity (row.id, via the parent <tr key={row.id}>) already gives
+  // this component a stable mount per row, so switching rows can't reuse
+  // another row's open/mounted map.
   return (
-    <>
-      <div ref={containerRef} className={styles.map} />
-      {failed && <p className={styles.warning}>No se pudo cargar el mapa.</p>}
-    </>
+    <PinMap
+      lat={row.lat}
+      lon={row.lon}
+      onPositionChange={(next) => onRowChange(row.id, next)}
+      adjustButtonLabel={`Ajustar pin de la fila ${position}: ${rowLabel(row)}`}
+    />
   );
 }
 

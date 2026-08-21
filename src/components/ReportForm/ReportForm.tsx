@@ -8,6 +8,7 @@ import {
 import { useAdvisorInfo } from "../../hooks/useAdvisorInfo";
 import { type RadiusM, DEFAULT_RADIUS_M, ALL_CATEGORY_VALUES } from "../../utils/constants";
 import { PersonalizationFields } from "../PersonalizationFields/PersonalizationFields";
+import { PinMap } from "../PinMap/PinMap";
 
 export const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
@@ -124,6 +125,24 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
           </p>
         )}
       </label>
+
+      {selectedPlace && (
+        <div className={styles.field}>
+          <span className={styles.label}>Ubicación en el mapa</span>
+          <PinMap
+            key={selectedPlace.address}
+            lat={selectedPlace.lat}
+            lon={selectedPlace.lon}
+            onPositionChange={({ lat, lon }) =>
+              setSelectedPlace((prev) => (prev ? { ...prev, lat, lon } : prev))
+            }
+            adjustButtonLabel="Ajustar pin de la dirección seleccionada"
+          />
+          <span className={styles.hint}>
+            {selectedPlace.lat.toFixed(5)}, {selectedPlace.lon.toFixed(5)}
+          </span>
+        </div>
+      )}
 
       <PersonalizationFields
         logoUrl={logoUrl}

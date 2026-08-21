@@ -1,13 +1,20 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ReportForm } from "./ReportForm";
 import { createColombiaPlaceAutocompleteElement, loadPlacesLibrary } from "../../api/googlePlaces";
 import { dispatchPlaceSelection, type FakePlace } from "../../test/googlePlacesTestUtils";
+import { createDraggableMarkerMap } from "../../api/googleMap";
 
 vi.mock("../../api/googlePlaces", () => ({
   loadPlacesLibrary: vi.fn(),
   createColombiaPlaceAutocompleteElement: vi.fn(),
 }));
+
+vi.mock("../../api/googleMap", () => ({
+  createDraggableMarkerMap: vi.fn(),
+}));
+
+const mockedCreateDraggableMarkerMap = vi.mocked(createDraggableMarkerMap);
 
 async function renderFormAndSelectPlace(
   onSubmit = vi.fn(),
@@ -33,6 +40,8 @@ describe("ReportForm", () => {
   beforeEach(() => {
     vi.mocked(loadPlacesLibrary).mockReset();
     vi.mocked(createColombiaPlaceAutocompleteElement).mockReset();
+    mockedCreateDraggableMarkerMap.mockReset();
+    mockedCreateDraggableMarkerMap.mockResolvedValue({ setPosition: vi.fn(), destroy: vi.fn() });
   });
 
   afterEach(() => {
@@ -187,6 +196,37 @@ describe("ReportForm", () => {
         radiusM: 500,
         visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques"],
       })
+    );
+  });
+
+  it("does not offer to adjust the pin before a place is selected", async () => {
+    const fakeElement = document.createElement("div");
+    vi.mocked(loadPlacesLibrary).mockResolvedValue(undefined);
+    vi.mocked(createColombiaPlaceAutocompleteElement).mockReturnValue(fakeElement as never);
+
+    render(<ReportForm onSubmit={vi.fn()} isSubmitting={false} />);
+    await waitFor(() => expect(fakeElement.isConnected).toBe(true));
+
+    expect(screen.queryByRole("button", { name: /ajustar pin/i })).not.toBeInTheDocument();
+  });
+
+  it("submits the dragged coordinates instead of the geocoded ones after the operator adjusts the pin", async () => {
+    let onPositionChange!: (position: { lat: number; lon: number }) => void;
+    mockedCreateDraggableMarkerMap.mockImplementation(async (_el, _pos, callback) => {
+      onPositionChange = callback;
+      return { setPosition: vi.fn(), destroy: vi.fn() };
+    });
+    const { onSubmit } = await renderFormAndSelectPlace();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: /ajustar pin/i }));
+    await vi.waitFor(() => expect(onPositionChange).toBeDefined());
+    act(() => onPositionChange({ lat: 4.7, lon: -74.1 }));
+
+    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ lat: 4.7, lon: -74.1 })
     );
   });
 });
