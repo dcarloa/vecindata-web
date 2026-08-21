@@ -150,16 +150,26 @@ function BareListingMock() {
       <div className={styles.mockImage}>
         <svg
           className={styles.mockImagePlaceholder}
-          viewBox="0 0 24 24"
+          viewBox="0 0 320 200"
+          preserveAspectRatio="xMidYMid slice"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
         >
-          <path d="M3 11l9-7 9 7" />
-          <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" />
+          {/* Deliberately plain — a generic listing photo sketch, not a
+              polished illustration, so the "after" panel's real report
+              reads as the richer, more finished side of the comparison. */}
+          <line x1="0" y1="150" x2="320" y2="150" />
+          <rect x="60" y="80" width="120" height="70" />
+          <path d="M52 80L120 40l68 40" />
+          <rect x="100" y="110" width="24" height="40" />
+          <rect x="140" y="95" width="20" height="20" />
+          <rect x="200" y="100" width="70" height="50" />
+          <line x1="200" y1="115" x2="270" y2="115" />
+          <line x1="225" y1="100" x2="225" y2="150" />
         </svg>
       </div>
       <p className={styles.mockPrice}>$420.000.000</p>
