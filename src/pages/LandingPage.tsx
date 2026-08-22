@@ -195,6 +195,15 @@ function EnrichedListingMock() {
           alt="Vista satelital real del entorno del inmueble, generada por VecinData"
           className={styles.mockSatelliteImage}
         />
+        <svg
+          className={styles.mockPin}
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z" />
+          <circle cx="12" cy="9" r="2.5" fill="var(--color-surface)" />
+        </svg>
       </div>
       <p className={styles.mockPrice}>$420.000.000</p>
       <p className={styles.mockAddress}>Calle 71 # 91-72, Bogotá</p>
