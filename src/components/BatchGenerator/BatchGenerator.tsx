@@ -44,6 +44,7 @@ export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProp
   const [results, setResults] = useState<BatchRowResult[]>([]);
   const [radiusM, setRadiusM] = useState<RadiusM>(DEFAULT_RADIUS_M);
   const [visibleCategories, setVisibleCategories] = useState<string[]>(ALL_CATEGORY_VALUES);
+  const [showScore, setShowScore] = useState(true);
 
   // A full batch can run for many minutes and there is no server-side job to
   // come back to — closing the tab throws the work away.
@@ -144,6 +145,7 @@ export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProp
           tagline: advisorInfo.tagline,
           radiusM,
           visibleCategories,
+          showScore,
         },
       }));
 
@@ -221,6 +223,8 @@ export function BatchGenerator({ accessKey, onAccessDenied }: BatchGeneratorProp
             onRadiusMChange={setRadiusM}
             visibleCategories={visibleCategories}
             onVisibleCategoriesChange={setVisibleCategories}
+            showScore={showScore}
+            onShowScoreChange={setShowScore}
           />
           {brandError && (
             <p role="alert" className={styles.error}>

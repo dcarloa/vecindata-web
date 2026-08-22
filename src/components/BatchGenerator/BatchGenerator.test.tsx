@@ -90,6 +90,7 @@ describe("BatchGenerator", () => {
             tagline: "",
             radiusM: 1000,
             visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
+            showScore: true,
           },
         },
       ],
@@ -469,6 +470,31 @@ describe("BatchGenerator", () => {
             radiusM: 2000,
             visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques"],
           }),
+        }),
+      ],
+      "test-key",
+      expect.anything()
+    );
+  });
+
+  it("includes showScore: false in every batch row when the omit-score box is checked", async () => {
+    mockedGeocodeAddress.mockResolvedValue(GEOCODED);
+    mockedRunBatch.mockResolvedValue({ accessDenied: false, results: [] });
+
+    const user = userEvent.setup();
+    render(<BatchGenerator accessKey="test-key" onAccessDenied={vi.fn()} />);
+
+    await user.upload(screen.getByLabelText(/sube un csv/i), csvOf(["Calle 100"]));
+    await screen.findByRole("button", { name: /generar todos/i });
+
+    await user.click(screen.getByText(/personalización \(opcional\)/i));
+    await user.click(screen.getByRole("checkbox", { name: /omitir puntaje de zona/i }));
+    await user.click(screen.getByRole("button", { name: /generar todos/i }));
+
+    expect(mockedRunBatch).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({
+          values: expect.objectContaining({ showScore: false }),
         }),
       ],
       "test-key",

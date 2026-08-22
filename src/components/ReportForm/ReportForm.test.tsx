@@ -89,6 +89,7 @@ describe("ReportForm", () => {
       tagline: "",
       radiusM: 1000,
       visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
+      showScore: true,
     });
   });
 
@@ -197,6 +198,17 @@ describe("ReportForm", () => {
         visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques"],
       })
     );
+  });
+
+  it("checking the omit-score box submits showScore: false", async () => {
+    const { onSubmit } = await renderFormAndSelectPlace();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByText(/personalización \(opcional\)/i));
+    await user.click(screen.getByRole("checkbox", { name: /omitir puntaje de zona/i }));
+    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ showScore: false }));
   });
 
   it("does not offer to adjust the pin before a place is selected", async () => {

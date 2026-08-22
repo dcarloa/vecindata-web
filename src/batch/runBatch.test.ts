@@ -32,6 +32,7 @@ function makeRow(address: string): BatchRow {
       tagline: "",
       radiusM: 1000,
       visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
+      showScore: true,
     },
   };
   nextRowId += 1;

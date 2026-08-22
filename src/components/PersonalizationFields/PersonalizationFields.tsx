@@ -90,6 +90,8 @@ interface PersonalizationFieldsProps {
   onRadiusMChange: (value: RadiusM) => void;
   visibleCategories: string[];
   onVisibleCategoriesChange: (categories: string[]) => void;
+  showScore: boolean;
+  onShowScoreChange: (value: boolean) => void;
 }
 
 export function PersonalizationFields({
@@ -103,6 +105,8 @@ export function PersonalizationFields({
   onRadiusMChange,
   visibleCategories,
   onVisibleCategoriesChange,
+  showScore,
+  onShowScoreChange,
 }: PersonalizationFieldsProps) {
   function toggleCategory(value: string) {
     if (visibleCategories.includes(value)) {
@@ -232,6 +236,21 @@ export function PersonalizationFields({
             })}
           </div>
         </fieldset>
+
+        <label className={styles.checkboxField}>
+          <input
+            type="checkbox"
+            checked={!showScore}
+            onChange={(event) => onShowScoreChange(!event.target.checked)}
+          />
+          <span>
+            <span className={styles.label}>Omitir puntaje de zona en el reporte</span>
+            <span className={styles.checkboxHint}>
+              Útil cuando la ubicación no puntúa bien y prefieres no mostrar el número —
+              el reporte igual incluye el resto de la información.
+            </span>
+          </span>
+        </label>
       </div>
     </details>
   );

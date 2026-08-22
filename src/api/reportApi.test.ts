@@ -13,6 +13,7 @@ const BASE_VALUES: ReportFormValues = {
   tagline: "",
   radiusM: 1000,
   visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
+  showScore: true,
 };
 
 const ACCESS_KEY = "test-access-key";
@@ -70,6 +71,7 @@ describe("generateReport", () => {
         tagline: "Presentado por Inmobiliaria XYZ",
         radiusM: 1000,
         visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
+        showScore: false,
       },
       ACCESS_KEY,
       new AbortController().signal
@@ -91,6 +93,7 @@ describe("generateReport", () => {
       tagline: "Presentado por Inmobiliaria XYZ",
       radius_m: 1000,
       visible_categories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
+      show_score: false,
     });
   });
 
@@ -110,10 +113,11 @@ describe("generateReport", () => {
       lon: -74.0817,
       radius_m: 1000,
       visible_categories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
+      show_score: true,
     });
   });
 
-  it("always sends radius_m and visible_categories, even at their defaults", async () => {
+  it("always sends radius_m, visible_categories, and show_score, even at their defaults", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue({ ok: true, blob: async () => new Blob() });
@@ -125,6 +129,7 @@ describe("generateReport", () => {
     const body = JSON.parse(init.body as string);
     expect(body.radius_m).toBe(1000);
     expect(body.visible_categories).toEqual(BASE_VALUES.visibleCategories);
+    expect(body.show_score).toBe(true);
   });
 
   it("rejects with the backend's message on a 422 with a string detail", async () => {

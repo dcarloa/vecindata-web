@@ -18,7 +18,7 @@ export async function generateReport(
 ): Promise<Blob> {
   const baseUrl = import.meta.env.VITE_REPORT_API_URL || DEFAULT_API_URL;
 
-  const body: Record<string, string | number | string[]> = {
+  const body: Record<string, string | number | boolean | string[]> = {
     address: values.address,
     lat: values.lat,
     lon: values.lon,
@@ -31,6 +31,7 @@ export async function generateReport(
   }
   body.radius_m = values.radiusM;
   body.visible_categories = values.visibleCategories;
+  body.show_score = values.showScore;
   if (values.advisorName.trim().length > 0) {
     body.advisor_name = values.advisorName.trim();
   }

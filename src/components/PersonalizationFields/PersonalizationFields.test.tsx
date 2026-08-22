@@ -15,6 +15,8 @@ function renderFields(overrides: Partial<Parameters<typeof PersonalizationFields
     onRadiusMChange: vi.fn(),
     visibleCategories: ["educacion", "salud", "transporte", "comercio", "restaurantes", "parques", "bancos"],
     onVisibleCategoriesChange: vi.fn(),
+    showScore: true,
+    onShowScoreChange: vi.fn(),
     ...overrides,
   };
   render(<PersonalizationFields {...props} />);
@@ -91,5 +93,30 @@ describe("PersonalizationFields", () => {
     await user.selectOptions(screen.getByLabelText(/radio de búsqueda/i), "500");
 
     expect(props.onRadiusMChange).toHaveBeenCalledWith(500);
+  });
+
+  it("the omit-score checkbox is unchecked by default when showScore is true", async () => {
+    renderFields();
+    const user = userEvent.setup();
+    await user.click(screen.getByText(/personalización \(opcional\)/i));
+
+    expect(screen.getByRole("checkbox", { name: /omitir puntaje de zona/i })).not.toBeChecked();
+  });
+
+  it("checking the omit-score checkbox calls onShowScoreChange with false", async () => {
+    const props = renderFields();
+    const user = userEvent.setup();
+    await user.click(screen.getByText(/personalización \(opcional\)/i));
+    await user.click(screen.getByRole("checkbox", { name: /omitir puntaje de zona/i }));
+
+    expect(props.onShowScoreChange).toHaveBeenCalledWith(false);
+  });
+
+  it("shows the omit-score checkbox as checked when showScore is false", async () => {
+    renderFields({ showScore: false });
+    const user = userEvent.setup();
+    await user.click(screen.getByText(/personalización \(opcional\)/i));
+
+    expect(screen.getByRole("checkbox", { name: /omitir puntaje de zona/i })).toBeChecked();
   });
 });

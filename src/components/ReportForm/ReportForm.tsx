@@ -24,6 +24,7 @@ export interface ReportFormValues {
   tagline: string;
   radiusM: RadiusM;
   visibleCategories: string[];
+  showScore: boolean;
 }
 
 interface ReportFormProps {
@@ -48,6 +49,7 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
   const [advisorInfo, setAdvisorInfo] = useAdvisorInfo();
   const [radiusM, setRadiusM] = useState<RadiusM>(DEFAULT_RADIUS_M);
   const [visibleCategories, setVisibleCategories] = useState<string[]>(ALL_CATEGORY_VALUES);
+  const [showScore, setShowScore] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -110,6 +112,7 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
       tagline: advisorInfo.tagline,
       radiusM,
       visibleCategories,
+      showScore,
     });
   }
 
@@ -155,6 +158,8 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
         onRadiusMChange={setRadiusM}
         visibleCategories={visibleCategories}
         onVisibleCategoriesChange={setVisibleCategories}
+        showScore={showScore}
+        onShowScoreChange={setShowScore}
       />
 
       {error && (
