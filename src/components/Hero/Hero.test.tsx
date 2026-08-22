@@ -10,7 +10,7 @@ describe("Hero", () => {
       </MemoryRouter>
     );
     expect(
-      screen.getByRole("heading", { name: /contexto de la zona/i })
+      screen.getByRole("heading", { name: /investigación de zona/i })
     ).toBeInTheDocument();
     const cta = screen.getByRole("link", { name: /generar un reporte/i });
     expect(cta).toHaveAttribute("href", "/generar");

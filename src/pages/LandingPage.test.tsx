@@ -11,7 +11,7 @@ describe("LandingPage", () => {
       </MemoryRouter>
     );
     expect(
-      screen.getByRole("heading", { name: /contexto de la zona/i })
+      screen.getByRole("heading", { name: /investigación de zona/i })
     ).toBeInTheDocument();
     expect(
       screen.getByText(/ingresa la dirección del inmueble/i)

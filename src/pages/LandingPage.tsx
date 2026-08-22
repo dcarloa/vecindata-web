@@ -4,7 +4,7 @@ import { Hero } from "../components/Hero/Hero";
 import { SectionHeading } from "../components/SectionHeading/SectionHeading";
 import { BeforeAfterSlider } from "../components/BeforeAfterSlider/BeforeAfterSlider";
 import { Logo } from "../components/Logo/Logo";
-import comparadorPdfPreview from "../assets/comparador-pdf-preview.jpg";
+import comparadorSatellite from "../assets/comparador-satellite.jpg";
 import styles from "./LandingPage.module.css";
 
 // Same thin line-icon aesthetic (24x24 viewBox, stroke 1.5, round caps) used
@@ -179,14 +179,33 @@ function BareListingMock() {
   );
 }
 
+const REPORT_BADGES = [
+  "Puntaje 8.2/10",
+  "3 colegios cerca",
+  "Buena conectividad",
+  "Resumen verificado",
+];
+
 function EnrichedListingMock() {
   return (
-    <div className={styles.reportPreview}>
-      <img
-        src={comparadorPdfPreview}
-        alt="Página real de un reporte VecinData: mapa, vista satelital y puntaje de zona"
-        className={styles.reportPreviewImage}
-      />
+    <div className={styles.mockCard}>
+      <div className={styles.mockImage}>
+        <img
+          src={comparadorSatellite}
+          alt="Vista satelital real del entorno del inmueble, generada por VecinData"
+          className={styles.mockSatelliteImage}
+        />
+      </div>
+      <p className={styles.mockPrice}>$420.000.000</p>
+      <p className={styles.mockAddress}>Calle 71 # 91-72, Bogotá</p>
+      <p className={styles.mockMeta}>3 hab · 2 baños · 84 m²</p>
+      <div className={styles.mockBadgeRow}>
+        {REPORT_BADGES.map((badge) => (
+          <span key={badge} className={styles.mockBadge}>
+            {badge}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

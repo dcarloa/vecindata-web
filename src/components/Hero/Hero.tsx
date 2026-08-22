@@ -43,7 +43,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
         >
-          El contexto de la zona, listo en segundos.
+          La investigación de zona que ya no tienes que hacer tú.
         </motion.h1>
         <motion.p
           className={styles.subheadline}
@@ -51,9 +51,10 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.22, ease: "easeOut" }}
         >
-          VecinData convierte cualquier dirección en un reporte de ubicación
-          profesional — mapa, qué hay alrededor, accesibilidad y un resumen que
-          no inventa nada. Ideal para adjuntar a tus anuncios inmobiliarios.
+          VecinData convierte cualquier dirección en un reporte verificado del
+          entorno — colegios, transporte, comercio y más — en segundos. Más
+          información para tu cliente, cero horas buscándola, y todo
+          respaldado con datos reales, no promesas.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
