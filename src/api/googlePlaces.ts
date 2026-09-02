@@ -12,6 +12,34 @@ export interface PlaceAutocompleteElement extends HTMLElement {
   placeholder: string;
 }
 
+export interface GoogleMapInstance {
+  setCenter(position: { lat: number; lng: number }): void;
+}
+
+type LatLike = number | (() => number);
+
+export interface AdvancedMarkerInstance {
+  position: { lat: LatLike; lng: LatLike } | null;
+  map: GoogleMapInstance | null;
+  addEventListener(type: "dragend", listener: () => void): void;
+  removeEventListener(type: "dragend", listener: () => void): void;
+}
+
+function resolveLatLike(value: LatLike): number {
+  return typeof value === "function" ? value() : value;
+}
+
+interface GeocoderResult {
+  formatted_address: string;
+}
+
+interface Geocoder {
+  geocode(
+    request: { location: { lat: number; lng: number } },
+    callback: (results: GeocoderResult[] | null, status: string) => void
+  ): void;
+}
+
 declare global {
   interface Window {
     google?: {
@@ -21,6 +49,24 @@ declare global {
             includedRegionCodes?: string[];
           }) => PlaceAutocompleteElement;
         };
+        marker: {
+          AdvancedMarkerElement: new (options: {
+            map: GoogleMapInstance;
+            position: { lat: number; lng: number };
+            gmpDraggable: boolean;
+          }) => AdvancedMarkerInstance;
+        };
+        Map: new (
+          container: HTMLElement,
+          options: {
+            center: { lat: number; lng: number };
+            zoom: number;
+            mapId: string;
+            streetViewControl?: boolean;
+            fullscreenControl?: boolean;
+          }
+        ) => GoogleMapInstance;
+        Geocoder: new () => Geocoder;
       };
     };
   }
@@ -45,7 +91,7 @@ export function loadPlacesLibrary(): Promise<void> {
 
   loadPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=es&region=CO`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,marker,geocoding&language=es&region=CO`;
     script.async = true;
     script.onload = () => resolve();
     script.onerror = () => {
@@ -67,4 +113,65 @@ export function createColombiaPlaceAutocompleteElement(): PlaceAutocompleteEleme
   });
   element.placeholder = "Calle 100 No. 15-20, Bogotá";
   return element;
+}
+
+const MAP_ZOOM = 16;
+
+export interface DraggableMarkerMap {
+  destroy(): void;
+}
+
+export function createDraggableMarkerMap(
+  container: HTMLElement,
+  position: { lat: number; lon: number },
+  onPositionChange: (position: { lat: number; lon: number }) => void
+): DraggableMarkerMap {
+  if (!window.google?.maps?.Map || !window.google?.maps?.marker?.AdvancedMarkerElement) {
+    throw new Error("El mapa de Google todavía no está listo.");
+  }
+  const map = new window.google.maps.Map(container, {
+    center: { lat: position.lat, lng: position.lon },
+    zoom: MAP_ZOOM,
+    mapId: "DEMO_MAP_ID",
+    streetViewControl: false,
+    fullscreenControl: false,
+  });
+  const marker = new window.google.maps.marker.AdvancedMarkerElement({
+    map,
+    position: { lat: position.lat, lng: position.lon },
+    gmpDraggable: true,
+  });
+  const handleDragEnd = () => {
+    const newPosition = marker.position;
+    if (newPosition) {
+      onPositionChange({
+        lat: resolveLatLike(newPosition.lat),
+        lon: resolveLatLike(newPosition.lng),
+      });
+    }
+  };
+  marker.addEventListener("dragend", handleDragEnd);
+
+  return {
+    destroy() {
+      marker.removeEventListener("dragend", handleDragEnd);
+      marker.map = null;
+    },
+  };
+}
+
+export function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+  if (!window.google?.maps?.Geocoder) {
+    return Promise.resolve(null);
+  }
+  const geocoder = new window.google.maps.Geocoder();
+  return new Promise((resolve) => {
+    geocoder.geocode({ location: { lat, lng: lon } }, (results, status) => {
+      if (status === "OK" && results && results.length > 0) {
+        resolve(results[0].formatted_address);
+      } else {
+        resolve(null);
+      }
+    });
+  });
 }
