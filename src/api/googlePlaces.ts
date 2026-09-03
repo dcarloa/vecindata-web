@@ -21,8 +21,10 @@ type LatLike = number | (() => number);
 export interface AdvancedMarkerInstance {
   position: { lat: LatLike; lng: LatLike } | null;
   map: GoogleMapInstance | null;
-  addEventListener(type: "dragend", listener: () => void): void;
-  removeEventListener(type: "dragend", listener: () => void): void;
+}
+
+export interface MapsEventListener {
+  remove(): void;
 }
 
 function resolveLatLike(value: LatLike): number {
@@ -67,6 +69,13 @@ declare global {
           }
         ) => GoogleMapInstance;
         Geocoder: new () => Geocoder;
+        event: {
+          addListener(
+            instance: AdvancedMarkerInstance,
+            eventName: "dragend",
+            handler: () => void
+          ): MapsEventListener;
+        };
       };
     };
   }
@@ -150,11 +159,14 @@ export function createDraggableMarkerMap(
       });
     }
   };
-  marker.addEventListener("dragend", handleDragEnd);
+  // AdvancedMarkerElement's "dragend" is not reliably delivered through the
+  // native DOM addEventListener; Google's own event system (addListener) is
+  // the documented, working path.
+  const listener = window.google.maps.event.addListener(marker, "dragend", handleDragEnd);
 
   return {
     destroy() {
-      marker.removeEventListener("dragend", handleDragEnd);
+      listener.remove();
       marker.map = null;
     },
   };
