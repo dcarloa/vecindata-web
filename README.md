@@ -59,3 +59,21 @@ npm run build
 
 Desde este punto, **cada `git push` a `master` despliega automático** — no hay
 que repetir estos pasos, solo el primero.
+
+### Nota de estado (2026-09-03)
+
+Lo anterior describe Cloudflare **Pages**, pero producción hoy
+(`https://vecindata.dcarloabad.workers.dev`) corre como Cloudflare
+**Worker con assets** (ver `wrangler.toml`), publicado a mano con
+`wrangler deploy` desde una cuenta de Cloudflare específica — el push a
+`master` **no** dispara un deploy automático en la práctica.
+
+El subdominio `dcarloabad.workers.dev` pertenece a una cuenta que no es la de
+jessicapaolapu — un intento de deploy con un token de otra cuenta no publica
+ahí, crea un Worker nuevo en un subdominio distinto.
+
+**Pendiente:** hay un fix ya en `master` (arreglo del pin arrastrable del
+mapa, commits `1a280d8`/`f858bdb`) sin publicar en producción por esto.
+Para desplegarlo hace falta `wrangler deploy` desde la cuenta dueña de
+`dcarloabad.workers.dev`, o un API Token de esa cuenta con permiso
+`Workers Scripts: Edit`.
