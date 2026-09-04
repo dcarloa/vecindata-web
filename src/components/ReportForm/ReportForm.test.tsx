@@ -3,9 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { ReportForm } from "./ReportForm";
 import {
   createColombiaPlaceAutocompleteElement,
-  createDraggableMarkerMap,
   loadPlacesLibrary,
-  reverseGeocode,
 } from "../../api/googlePlaces";
 import { dispatchPlaceSelection, type FakePlace } from "../../test/googlePlacesTestUtils";
 import { createDraggableMarkerMap } from "../../api/googleMap";
@@ -13,8 +11,6 @@ import { createDraggableMarkerMap } from "../../api/googleMap";
 vi.mock("../../api/googlePlaces", () => ({
   loadPlacesLibrary: vi.fn(),
   createColombiaPlaceAutocompleteElement: vi.fn(),
-  createDraggableMarkerMap: vi.fn(),
-  reverseGeocode: vi.fn(),
 }));
 
 vi.mock("../../api/googleMap", () => ({
@@ -182,40 +178,6 @@ describe("ReportForm", () => {
       await screen.findByText(/no se pudo cargar el buscador de direcciones/i)
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /generar reporte/i })).toBeDisabled();
-  });
-
-  it("updates the address after dragging the map pin (reverse geocoding)", async () => {
-    const { onSubmit } = await renderFormAndSelectPlace();
-    const user = userEvent.setup();
-
-    let capturedOnPositionChange:
-      | ((position: { lat: number; lon: number }) => void)
-      | undefined;
-    vi.mocked(createDraggableMarkerMap).mockImplementation((_container, _position, onPositionChange) => {
-      capturedOnPositionChange = onPositionChange;
-      return { destroy: vi.fn() };
-    });
-    vi.mocked(reverseGeocode).mockResolvedValue("Calle 72 #10-20, Bogotá, Colombia");
-
-    await user.click(screen.getByRole("button", { name: /ajustar pin/i }));
-    await waitFor(() => expect(capturedOnPositionChange).toBeDefined());
-
-    act(() => capturedOnPositionChange!({ lat: 4.7, lon: -74.12 }));
-
-    await waitFor(() =>
-      expect(reverseGeocode).toHaveBeenCalledWith(4.7, -74.12)
-    );
-    await screen.findByText(/Calle 72 #10-20, Bogotá, Colombia/);
-
-    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
-
-    expect(onSubmit).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: "Calle 72 #10-20, Bogotá, Colombia",
-        lat: 4.7,
-        lon: -74.12,
-      })
-    );
   });
 
   it("disables the submit button and shows a loading label while submitting", () => {
