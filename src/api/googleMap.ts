@@ -35,14 +35,16 @@ export async function createDraggableMarkerMap(
     gmpDraggable: true,
   });
 
-  // Kept in a named reference so destroy() can remove it — without that, every
-  // map a row mounts and unmounts leaks its retained closure.
   const handleDragEnd = () => {
     const position = marker.position;
     if (!position) return;
     onPositionChange({ lat: position.lat, lon: position.lng });
   };
-  marker.addEventListener("dragend", handleDragEnd);
+  // AdvancedMarkerElement's "dragend" is not reliably delivered through the
+  // native DOM addEventListener — Google's internal drag controller moves
+  // the marker independently of it. google.maps.event.addListener is the
+  // documented, working path.
+  const listener = window.google.maps.event.addListener(marker, "dragend", handleDragEnd);
 
   return {
     setPosition(position: MapPosition) {
@@ -50,7 +52,7 @@ export async function createDraggableMarkerMap(
       map.setCenter({ lat: position.lat, lng: position.lon });
     },
     destroy() {
-      marker.removeEventListener("dragend", handleDragEnd);
+      listener.remove();
       marker.map = null;
     },
   };

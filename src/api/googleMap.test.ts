@@ -37,6 +37,12 @@ describe("createDraggableMarkerMap", () => {
             return lastMarker;
           }),
         },
+        event: {
+          addListener: vi.fn().mockImplementation((instance, eventName, handler) => {
+            instance.addEventListener(eventName, handler);
+            return { remove: () => instance.removeEventListener(eventName, handler) };
+          }),
+        },
       },
     } as never;
   });

@@ -62,9 +62,14 @@ declare global {
           }) => {
             position: { lat: number; lng: number } | null;
             map: unknown;
-            addEventListener(type: string, listener: () => void): void;
-            removeEventListener(type: string, listener: () => void): void;
           };
+        };
+        event: {
+          addListener(
+            instance: object,
+            eventName: "dragend",
+            handler: () => void
+          ): { remove(): void };
         };
       };
     };
