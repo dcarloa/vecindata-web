@@ -37,24 +37,31 @@ npm run typecheck
 npm run build
 ```
 
-## Despliegue (Cloudflare Worker, manual)
+## Despliegue (Cloudflare Worker)
 
 Producción (`https://vecindata.dcarloabad.workers.dev`) corre como un
-Cloudflare Worker con assets estáticos (ver `wrangler.toml`), **no** como
-Cloudflare Pages, y **no** se despliega automático al hacer `git push` —
-hay que publicarlo a mano desde la cuenta de Cloudflare dueña de ese
-subdominio:
+Cloudflare Worker con assets estáticos (ver `wrangler.toml`), no como
+Cloudflare Pages.
 
-```bash
-npm run build
-npx wrangler deploy
-```
+⚠️ **No hagas `npm run build && wrangler deploy` a mano desde una máquina
+cualquiera.** `VITE_GOOGLE_PLACES_API_KEY` vive *solo* en el build-time
+config de Cloudflare (Worker → Settings → Build → "Build variables and
+secrets") — nunca en git, nunca en `.env.production`, nunca en ninguna
+variable de shell local. Un build hecho en una máquina sin esa clave
+compila igual (sin error) pero deja el buscador de direcciones roto en
+producción ("No se pudo cargar el buscador de direcciones") porque
+`loadPlacesLibrary()` rechaza de inmediato con la clave vacía — así se
+rompió el 2026-09-03/04.
 
-`wrangler deploy` necesita credenciales de esa cuenta específica de
-Cloudflare (`CLOUDFLARE_API_TOKEN` con permiso `Workers Scripts: Edit`,
-guardado en `~/.config/vecindata/deploy.env` en la máquina que hace los
-despliegues). Un token de otra cuenta no publica en `dcarloabad.workers.dev`
-— crea un Worker nuevo en un subdominio distinto.
+- Si el repo tiene conectado Cloudflare Workers Builds (git integration),
+  un `git push` a `master` ya dispara el build+deploy correcto — confirmar
+  en el dashboard de Cloudflare, sección Builds, antes de asumir que hace
+  falta un paso manual.
+- Si de verdad hay que desplegar a mano, primero conseguí el valor real de
+  `VITE_GOOGLE_PLACES_API_KEY` desde el dashboard de Cloudflare y expórtalo
+  en el shell antes de `npm run build`; `CLOUDFLARE_API_TOKEN`
+  (`Workers Scripts: Edit`, cuenta dueña de `dcarloabad.workers.dev`) solo
+  alcanza para el `wrangler deploy`, no reemplaza la clave de Places.
 
 `VITE_REPORT_API_URL` (la URL de Cloud Run del backend) se configura en
 `.env.production`, no como variable de entorno de Cloudflare.
