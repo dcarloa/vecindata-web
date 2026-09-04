@@ -37,25 +37,24 @@ npm run typecheck
 npm run build
 ```
 
-## Despliegue (Cloudflare Pages)
+## Despliegue (Cloudflare Worker, manual)
 
-1. Ve a https://dash.cloudflare.com → Workers & Pages → Create → Pages →
-   Connect to Git.
-2. Selecciona el repo `vecindata-web` en GitHub (autoriza a Cloudflare si es la
-   primera vez).
-3. Configuración de build:
-   - Framework preset: `Vite` (o "None" si no aparece — el comando/directorio
-     abajo son lo que realmente importa)
-   - Build command: `npm run build`
-   - Build output directory: `dist`
-4. Antes de desplegar, agrega la variable de entorno (sección "Environment
-   variables" del mismo formulario):
-   - `VITE_REPORT_API_URL` = la URL de Cloud Run del paso 3 en el README de
-     `vecindata-report-api` (ej. `https://vecindata-report-api-xxxxx-uc.a.run.app`)
-5. Guarda y despliega. Cloudflare te da una URL permanente tipo
-   `https://vecindata-web-xxx.pages.dev`.
-6. Copia esa URL y vuelve al paso 4 en el README de `vecindata-report-api` para
-   agregarla a `allow_origins` y redesplegar el backend con el CORS correcto.
+Producción (`https://vecindata.dcarloabad.workers.dev`) corre como un
+Cloudflare Worker con assets estáticos (ver `wrangler.toml`), **no** como
+Cloudflare Pages, y **no** se despliega automático al hacer `git push` —
+hay que publicarlo a mano desde la cuenta de Cloudflare dueña de ese
+subdominio:
 
-Desde este punto, **cada `git push` a `master` despliega automático** — no hay
-que repetir estos pasos, solo el primero.
+```bash
+npm run build
+npx wrangler deploy
+```
+
+`wrangler deploy` necesita credenciales de esa cuenta específica de
+Cloudflare (`CLOUDFLARE_API_TOKEN` con permiso `Workers Scripts: Edit`,
+guardado en `~/.config/vecindata/deploy.env` en la máquina que hace los
+despliegues). Un token de otra cuenta no publica en `dcarloabad.workers.dev`
+— crea un Worker nuevo en un subdominio distinto.
+
+`VITE_REPORT_API_URL` (la URL de Cloud Run del backend) se configura en
+`.env.production`, no como variable de entorno de Cloudflare.
