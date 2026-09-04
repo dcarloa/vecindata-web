@@ -3,6 +3,7 @@ import styles from "./ReportForm.module.css";
 import {
   createColombiaPlaceAutocompleteElement,
   loadPlacesLibrary,
+  reverseGeocode,
   type PlaceSelectEvent,
 } from "../../api/googlePlaces";
 import { useAdvisorInfo } from "../../hooks/useAdvisorInfo";
@@ -44,6 +45,7 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [autocompleteStatus, setAutocompleteStatus] = useState<AutocompleteStatus>("loading");
   const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
+  const [selectionId, setSelectionId] = useState(0);
   const [logoUrl, setLogoUrl] = useState("");
   const [brandColor, setBrandColor] = useState("");
   const [advisorInfo, setAdvisorInfo] = useAdvisorInfo();
@@ -70,6 +72,7 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
                 lat: place.location.lat(),
                 lon: place.location.lng(),
               });
+              setSelectionId((id) => id + 1);
               setError(null);
             });
         }) as EventListener);
@@ -84,6 +87,15 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
       cancelled = true;
     };
   }, []);
+
+  function handlePositionChange(position: { lat: number; lon: number }) {
+    setSelectedPlace((prev) => prev && { ...prev, lat: position.lat, lon: position.lon });
+    reverseGeocode(position.lat, position.lon).then((address) => {
+      if (address) {
+        setSelectedPlace((prev) => prev && { ...prev, address });
+      }
+    });
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
