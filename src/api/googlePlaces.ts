@@ -10,6 +10,7 @@ export interface PlaceSelectEvent extends Event {
 
 export interface PlaceAutocompleteElement extends HTMLElement {
   placeholder: string;
+  value: string;
 }
 
 /**
@@ -27,10 +28,9 @@ export interface GeocoderResult {
   geometry: { location: GeocoderLatLng };
 }
 
-export interface GeocoderRequest {
-  address: string;
-  componentRestrictions?: { country: string };
-}
+export type GeocoderRequest =
+  | { address: string; componentRestrictions?: { country: string } }
+  | { location: { lat: number; lng: number } };
 
 export interface GeocoderResponse {
   results: GeocoderResult[];

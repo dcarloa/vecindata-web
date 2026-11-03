@@ -3,8 +3,10 @@ import styles from "./ReportForm.module.css";
 import {
   createColombiaPlaceAutocompleteElement,
   loadPlacesLibrary,
+  type PlaceAutocompleteElement,
   type PlaceSelectEvent,
 } from "../../api/googlePlaces";
+import { reverseGeocode } from "../../api/geocoding";
 import { useAdvisorInfo } from "../../hooks/useAdvisorInfo";
 import { type RadiusM, DEFAULT_RADIUS_M, ALL_CATEGORY_VALUES } from "../../utils/constants";
 import { PersonalizationFields } from "../PersonalizationFields/PersonalizationFields";
@@ -42,8 +44,14 @@ interface SelectedPlace {
 
 export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const autocompleteRef = useRef<PlaceAutocompleteElement | null>(null);
+  // Bumped on every new selection or drag, so a slow reverse-geocode response
+  // can't overwrite the address of a newer position.
+  const addressRequestRef = useRef(0);
   const [autocompleteStatus, setAutocompleteStatus] = useState<AutocompleteStatus>("loading");
   const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
+  const [selectionId, setSelectionId] = useState(0);
+  const [addressStale, setAddressStale] = useState(false);
   const [logoUrl, setLogoUrl] = useState("");
   const [brandColor, setBrandColor] = useState("");
   const [advisorInfo, setAdvisorInfo] = useAdvisorInfo();
@@ -65,6 +73,9 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
             .fetchFields({ fields: ["formattedAddress", "location"] })
             .then(() => {
               if (cancelled || !place.location) return;
+              addressRequestRef.current += 1;
+              setSelectionId((id) => id + 1);
+              setAddressStale(false);
               setSelectedPlace({
                 address: place.formattedAddress ?? "",
                 lat: place.location.lat(),
@@ -74,6 +85,7 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
             });
         }) as EventListener);
         containerRef.current.appendChild(element);
+        autocompleteRef.current = element;
         setAutocompleteStatus("ready");
       })
       .catch(() => {
@@ -84,6 +96,19 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
       cancelled = true;
     };
   }, []);
+
+  function handlePositionChange({ lat, lon }: { lat: number; lon: number }) {
+    const requestId = ++addressRequestRef.current;
+    setSelectedPlace((prev) => (prev ? { ...prev, lat, lon } : prev));
+
+    reverseGeocode(lat, lon).then((address) => {
+      if (requestId !== addressRequestRef.current) return;
+      setAddressStale(!address);
+      if (!address) return;
+      setSelectedPlace((prev) => (prev ? { ...prev, address } : prev));
+      if (autocompleteRef.current) autocompleteRef.current.value = address;
+    });
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -133,17 +158,21 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
         <div className={styles.field}>
           <span className={styles.label}>Ubicación en el mapa</span>
           <PinMap
-            key={selectedPlace.address}
+            key={selectionId}
             lat={selectedPlace.lat}
             lon={selectedPlace.lon}
-            onPositionChange={({ lat, lon }) =>
-              setSelectedPlace((prev) => (prev ? { ...prev, lat, lon } : prev))
-            }
+            onPositionChange={handlePositionChange}
             adjustButtonLabel="Ajustar pin de la dirección seleccionada"
           />
           <span className={styles.hint}>
             {selectedPlace.lat.toFixed(5)}, {selectedPlace.lon.toFixed(5)}
           </span>
+          {addressStale && (
+            <span className={styles.hint}>
+              No se pudo actualizar la dirección para esta ubicación; se mantiene
+              la anterior.
+            </span>
+          )}
         </div>
       )}
 

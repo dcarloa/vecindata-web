@@ -7,6 +7,7 @@ import {
 } from "../../api/googlePlaces";
 import { dispatchPlaceSelection, type FakePlace } from "../../test/googlePlacesTestUtils";
 import { createDraggableMarkerMap } from "../../api/googleMap";
+import { reverseGeocode } from "../../api/geocoding";
 
 vi.mock("../../api/googlePlaces", () => ({
   loadPlacesLibrary: vi.fn(),
@@ -17,7 +18,12 @@ vi.mock("../../api/googleMap", () => ({
   createDraggableMarkerMap: vi.fn(),
 }));
 
+vi.mock("../../api/geocoding", () => ({
+  reverseGeocode: vi.fn(),
+}));
+
 const mockedCreateDraggableMarkerMap = vi.mocked(createDraggableMarkerMap);
+const mockedReverseGeocode = vi.mocked(reverseGeocode);
 
 async function renderFormAndSelectPlace(
   onSubmit = vi.fn(),
@@ -226,6 +232,7 @@ describe("ReportForm", () => {
   });
 
   it("submits the dragged coordinates instead of the geocoded ones after the operator adjusts the pin", async () => {
+    mockedReverseGeocode.mockResolvedValue(null);
     let onPositionChange!: (position: { lat: number; lon: number }) => void;
     mockedCreateDraggableMarkerMap.mockImplementation(async (_el, _pos, callback) => {
       onPositionChange = callback;
@@ -242,6 +249,86 @@ describe("ReportForm", () => {
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({ lat: 4.7, lon: -74.1 })
+    );
+  });
+
+  async function openPinMap() {
+    let onPositionChange!: (position: { lat: number; lon: number }) => void;
+    mockedCreateDraggableMarkerMap.mockImplementation(async (_el, _pos, callback) => {
+      onPositionChange = callback;
+      return { setPosition: vi.fn(), destroy: vi.fn() };
+    });
+    const { onSubmit } = await renderFormAndSelectPlace();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: /ajustar pin/i }));
+    await vi.waitFor(() => expect(onPositionChange).toBeDefined());
+    return { onSubmit, user, drag: (lat: number, lon: number) => onPositionChange({ lat, lon }) };
+  }
+
+  it("replaces the address shown and submitted when the pin is dragged, keeping the map open", async () => {
+    mockedReverseGeocode.mockResolvedValue("Carrera 15 #90-10, Bogotá, Colombia");
+    const { onSubmit, user, drag } = await openPinMap();
+    const autocomplete = vi.mocked(createColombiaPlaceAutocompleteElement).mock.results.slice(-1)[0]
+      .value as { value?: string };
+    const mapsCreated = mockedCreateDraggableMarkerMap.mock.calls.length;
+
+    await act(async () => drag(4.7, -74.1));
+
+    expect(mockedReverseGeocode).toHaveBeenCalledWith(4.7, -74.1);
+    expect(autocomplete.value).toBe("Carrera 15 #90-10, Bogotá, Colombia");
+    expect(screen.queryByRole("button", { name: /ajustar pin/i })).not.toBeInTheDocument();
+    expect(mockedCreateDraggableMarkerMap).toHaveBeenCalledTimes(mapsCreated);
+
+    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: "Carrera 15 #90-10, Bogotá, Colombia",
+        lat: 4.7,
+        lon: -74.1,
+      })
+    );
+  });
+
+  it("warns and keeps the previous address when the new position can't be resolved", async () => {
+    mockedReverseGeocode.mockResolvedValue(null);
+    const { onSubmit, user, drag } = await openPinMap();
+
+    await act(async () => drag(4.7, -74.1));
+
+    expect(screen.getByText(/no se pudo actualizar la dirección/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: "Calle 71 Bis #91-72, Bogotá, Colombia",
+        lat: 4.7,
+        lon: -74.1,
+      })
+    );
+  });
+
+  it("ignores a slow address response once the pin has moved again", async () => {
+    let resolveFirst!: (address: string | null) => void;
+    mockedReverseGeocode
+      .mockImplementationOnce(() => new Promise((resolve) => (resolveFirst = resolve)))
+      .mockResolvedValueOnce("Dirección nueva, Bogotá, Colombia");
+    const { onSubmit, user, drag } = await openPinMap();
+
+    await act(async () => drag(4.7, -74.1));
+    await act(async () => drag(4.8, -74.2));
+    await act(async () => resolveFirst("Dirección vieja, Bogotá, Colombia"));
+
+    await user.click(screen.getByRole("button", { name: /generar reporte/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: "Dirección nueva, Bogotá, Colombia",
+        lat: 4.8,
+        lon: -74.2,
+      })
     );
   });
 });

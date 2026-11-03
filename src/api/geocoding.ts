@@ -43,3 +43,19 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
     return null;
   }
 }
+
+/** Same SDK-only constraint as `geocodeAddress`. */
+export async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+  try {
+    await loadPlacesLibrary();
+
+    if (!window.google?.maps?.Geocoder) return null;
+
+    const geocoder = new window.google.maps.Geocoder();
+    const response = await geocoder.geocode({ location: { lat, lng: lon } });
+
+    return response?.results?.[0]?.formatted_address ?? null;
+  } catch {
+    return null;
+  }
+}

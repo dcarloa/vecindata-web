@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { geocodeAddress } from "./geocoding";
+import { geocodeAddress, reverseGeocode } from "./geocoding";
 import { loadPlacesLibrary } from "./googlePlaces";
 
 vi.mock("./googlePlaces", () => ({
@@ -77,5 +77,41 @@ describe("geocodeAddress", () => {
     window.google = { maps: { places: {} } } as never;
 
     expect(await geocodeAddress("Calle 100")).toBeNull();
+  });
+});
+
+describe("reverseGeocode", () => {
+  let geocode: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.mocked(loadPlacesLibrary).mockResolvedValue(undefined);
+    geocode = vi.fn();
+    window.google = {
+      maps: {
+        places: {} as never,
+        Geocoder: vi.fn().mockImplementation(() => ({ geocode })),
+      },
+    } as never;
+  });
+
+  it("looks up the coordinates and returns the first formatted address", async () => {
+    geocode.mockResolvedValue({
+      results: [{ formatted_address: "Calle 100 #15-20, Bogotá, Colombia" }],
+    });
+
+    expect(await reverseGeocode(4.68, -74.05)).toBe("Calle 100 #15-20, Bogotá, Colombia");
+    expect(geocode).toHaveBeenCalledWith({ location: { lat: 4.68, lng: -74.05 } });
+  });
+
+  it("returns null when Google reports no results", async () => {
+    geocode.mockResolvedValue({ results: [] });
+
+    expect(await reverseGeocode(4.68, -74.05)).toBeNull();
+  });
+
+  it("returns null when the geocode call rejects", async () => {
+    geocode.mockRejectedValue(new Error("ZERO_RESULTS"));
+
+    expect(await reverseGeocode(4.68, -74.05)).toBeNull();
   });
 });
